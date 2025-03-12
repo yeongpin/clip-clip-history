@@ -1,10 +1,18 @@
 # 📋 Clip-Clip-History
 
+<div align="center">
+
 🔍 **Clip-Clip-History** is a lightweight clipboard history manager built with **Python** and **PyQt6**, providing a seamless way to manage and access copied text.
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/yeongpin/clip-clip-history)
-![GitHub stars](https://img.shields.io/github/stars/yeongpin/clip-clip-history?style=social)
-![GitHub license](https://img.shields.io/github/license/yeongpin/clip-clip-history)
+<p align="center">
+
+[![Release](https://img.shields.io/github/v/release/yeongpin/clip-clip-history?style=flat-square&logo=github&color=blue)](https://github.com/yeongpin/clip-clip-history/releases/latest)
+[![Stars](https://img.shields.io/github/stars/yeongpin/clip-clip-history?style=flat-square&logo=github)](https://github.com/yeongpin/clip-clip-history/stargazers)
+[![Github License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yeongpin/clip-clip-history/blob/main/LICENSE)
+
+</p>
+
+</div>
 
 ---
 
@@ -24,7 +32,15 @@
 
 ## 📸 Preview
 
-*(Include screenshots here if available)*
+<details>
+
+<summary>Click to expand</summary>
+
+| ![Preview](.\images\preview_2025-03-12_14-52-34.png) | ![Preview](.\images\preview_2025-03-12_14-53-19.png) |
+|--------------------------------------------------------|--------------------------------------------------------|
+| ![Preview](.\images\Preview_2025-03-12_14-54-29.png) | ![Preview](.\images\Preview_2025-03-12_14-54-50.png) |
+
+</details>
 
 ---
 
