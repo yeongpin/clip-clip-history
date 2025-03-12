@@ -89,7 +89,7 @@ jobs:
         
     - name: Build MacOS ARM executable
       run: |
-        pyinstaller ClipClip.spec
+        pyinstaller build.spec
         chmod +x "dist/ClipClip-${{ env.VERSION }}-mac"
 
     - name: Upload MacOS ARM artifact
