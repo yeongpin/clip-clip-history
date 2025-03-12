@@ -98,7 +98,11 @@ jobs:
         pip install pyinstaller python-dotenv
         pip install -r requirements.txt
         
-    - name: Build MacOS ARM executable
+    - name: Create ICNS icon
+      run: |
+        python scripts/create_icns.py
+
+    - name: Build MacOS executable
       run: |
         pyinstaller ClipClip.spec
         mv "dist/ClipClip-${{ env.VERSION }}-mac" "dist/ClipClip-${{ env.VERSION }}-mac-arm64"
@@ -162,15 +166,15 @@ jobs:
         
         cp "src/resources/clip_clip_icon.svg" "$PKG_ROOT/usr/share/icons/hicolor/scalable/apps/clipclip.svg"
         
-        # Create desktop entry
-        echo "[Desktop Entry]
-        Name=ClipClip
-        Exec=/usr/local/bin/clipclip
-        Icon=clipclip
-        Type=Application
-        Categories=Utility;" > "$PKG_ROOT/usr/share/applications/clipclip.desktop"
+        cat > "$PKG_ROOT/usr/share/applications/clipclip.desktop" << 'EOF' |
+          [Desktop Entry]
+          Name=ClipClip
+          Exec=/usr/local/bin/clipclip
+          Icon=clipclip
+          Type=Application
+          Categories=Utility;
+          EOF
         
-        # Create control file
         echo "Package: clipclip
         Version: ${{ env.VERSION }}
         Section: utils
@@ -212,7 +216,7 @@ jobs:
     
     - name: Build in ARM64 Docker container
       run: |
-        docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/app -w /app arm64v8/python:3.9-slim bash -c "
+        docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/app -w /app arm64v8/python:3.9-slim bash -c '
           apt-get update && apt-get install -y build-essential
           pip install --upgrade pip wheel
           pip install pyinstaller python-dotenv
@@ -222,34 +226,38 @@ jobs:
           
           # Create DEB package
           PKG_ROOT=/app/dist/linux_pkg
-          mkdir -p \$PKG_ROOT/DEBIAN
-          mkdir -p \$PKG_ROOT/usr/local/bin
-          mkdir -p \$PKG_ROOT/usr/share/applications
-          mkdir -p \$PKG_ROOT/usr/share/icons/hicolor/scalable/apps
+          mkdir -p $PKG_ROOT/DEBIAN
+          mkdir -p $PKG_ROOT/usr/local/bin
+          mkdir -p $PKG_ROOT/usr/share/applications
+          mkdir -p $PKG_ROOT/usr/share/icons/hicolor/scalable/apps
           
-          cp /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 \$PKG_ROOT/usr/local/bin/clipclip
-          chmod +x \$PKG_ROOT/usr/local/bin/clipclip
+          cp /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 $PKG_ROOT/usr/local/bin/clipclip
+          chmod +x $PKG_ROOT/usr/local/bin/clipclip
           
-          cp /app/src/resources/clip_clip_icon.svg \$PKG_ROOT/usr/share/icons/hicolor/scalable/apps/clipclip.svg
+          cp /app/src/resources/clip_clip_icon.svg $PKG_ROOT/usr/share/icons/hicolor/scalable/apps/clipclip.svg
           
-          echo '[Desktop Entry]
-          Name=ClipClip
-          Exec=/usr/local/bin/clipclip
-          Icon=clipclip
-          Type=Application
-          Categories=Utility;' > \$PKG_ROOT/usr/share/applications/clipclip.desktop
+          cat > $PKG_ROOT/usr/share/applications/clipclip.desktop << EOL
+[Desktop Entry]
+Name=ClipClip
+Exec=/usr/local/bin/clipclip
+Icon=clipclip
+Type=Application
+Categories=Utility;
+EOL
           
-          echo 'Package: clipclip
-          Version: ${{ env.VERSION }}
-          Section: utils
-          Priority: optional
-          Architecture: arm64
-          Maintainer: $(grep author .env | cut -d= -f2)
-          Description: Clipboard History Manager
-           A lightweight clipboard history tool.' > \$PKG_ROOT/DEBIAN/control
+          cat > $PKG_ROOT/DEBIAN/control << EOL
+Package: clipclip
+Version: ${{ env.VERSION }}
+Section: utils
+Priority: optional
+Architecture: arm64
+Maintainer: $(grep author /app/.env | cut -d= -f2 | tr -d " ")
+Description: Clipboard History Manager
+ A lightweight clipboard history tool.
+EOL
           
-          dpkg-deb --build \$PKG_ROOT /app/dist/clipclip-${{ env.VERSION }}-arm64.deb
-        "
+          dpkg-deb --build $PKG_ROOT /app/dist/clipclip-${{ env.VERSION }}-arm64.deb
+        '
         
     - name: Upload Linux ARM64 DEB package
       uses: actions/upload-artifact@v4

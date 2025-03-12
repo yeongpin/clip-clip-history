@@ -3,10 +3,8 @@
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 
-; Read version from .env
-!system 'python -c "with open('.env') as f: print([l.split('=')[1].strip() for l in f if l.startswith('version')][0])" > version.txt'
-!define /file VERSION version.txt
-!delfile version.txt
+; Read version from environment variable
+!define VERSION $%VERSION%
 
 ; General
 Name "ClipClip"
