@@ -118,19 +118,19 @@ class ConfigManager:
             key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
             try:
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_WRITE)
-                winreg.SetValueEx(key, "ClipboardHistory", 0, winreg.REG_SZ, sys.executable + " " + os.path.abspath(__file__))
+                winreg.SetValueEx(key, "ClipClipHistory", 0, winreg.REG_SZ, sys.executable + " " + os.path.abspath(__file__))
                 winreg.CloseKey(key)
             except Exception as e:
                 print(f"Error registering startup: {e}")
                 
         elif system == "Darwin":  # macOS
-            plist_path = os.path.expanduser("~/Library/LaunchAgents/com.clipboardhistory.plist")
+            plist_path = os.path.expanduser("~/Library/LaunchAgents/com.clipcliphistory.plist")
             plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.clipboardhistory</string>
+    <string>com.clipcliphistory</string>
     <key>ProgramArguments</key>
     <array>
         <string>{sys.executable}</string>
@@ -149,10 +149,10 @@ class ConfigManager:
         elif system == "Linux":
             autostart_dir = os.path.expanduser("~/.config/autostart")
             os.makedirs(autostart_dir, exist_ok=True)
-            desktop_path = os.path.join(autostart_dir, "clipboard-history.desktop")
+            desktop_path = os.path.join(autostart_dir, "clipcliphistory.desktop")
             desktop_content = f"""[Desktop Entry]
 Type=Application
-Name=Clipboard History
+Name=ClipClip History
 Exec={sys.executable} {os.path.abspath(__file__)}
 Hidden=false
 NoDisplay=false
@@ -175,13 +175,13 @@ X-GNOME-Autostart-enabled=true
             key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
             try:
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_WRITE)
-                winreg.DeleteValue(key, "ClipboardHistory")
+                winreg.DeleteValue(key, "ClipClipHistory")
                 winreg.CloseKey(key)
             except Exception as e:
                 print(f"Error unregistering startup: {e}")
                 
         elif system == "Darwin":  # macOS
-            plist_path = os.path.expanduser("~/Library/LaunchAgents/com.clipboardhistory.plist")
+            plist_path = os.path.expanduser("~/Library/LaunchAgents/com.clipcliphistory.plist")
             if os.path.exists(plist_path):
                 try:
                     os.remove(plist_path)
@@ -189,7 +189,7 @@ X-GNOME-Autostart-enabled=true
                     print(f"Error unregistering startup: {e}")
                     
         elif system == "Linux":
-            desktop_path = os.path.expanduser("~/.config/autostart/clipboard-history.desktop")
+            desktop_path = os.path.expanduser("~/.config/autostart/clipcliphistory.desktop")
             if os.path.exists(desktop_path):
                 try:
                     os.remove(desktop_path)

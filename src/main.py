@@ -28,10 +28,10 @@ class GlobalSignals(QObject):
 def main():
     # Create application
     app = QApplication(sys.argv)
-    app.setApplicationName("Clipboard History")
+    app.setApplicationName("ClipClip History")
     
     # 設置應用圖標
-    icon_path = os.path.join(os.path.dirname(__file__), "resources", "clipboard_icon.svg")
+    icon_path = os.path.join(os.path.dirname(__file__), "resources", "clipclip_icon.svg")
     if os.path.exists(icon_path):
         app.setWindowIcon(QIcon(icon_path))
     else:

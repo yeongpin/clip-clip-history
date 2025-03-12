@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         self.config = config_manager
         self.clipboard = QApplication.clipboard()
         
-        self.setWindowTitle("Clipboard History")
+        self.setWindowTitle("ClipClip History")
         self.setMinimumSize(600, 400)
         
         # 設置窗口屬性，使其能夠接收全局快捷鍵
