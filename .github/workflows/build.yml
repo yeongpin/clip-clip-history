@@ -86,9 +86,16 @@ jobs:
       shell: bash
       run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
     
+    - name: Install build dependencies
+      run: |
+        brew install pkg-config
+        brew install libjpeg
+        brew install zlib
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install wheel  # Add wheel package
         pip install pyinstaller
         pip install -r requirements.txt
         
@@ -267,9 +274,16 @@ jobs:
       shell: bash
       run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
+    - name: Install build dependencies
+      run: |
+        brew install pkg-config
+        brew install libjpeg
+        brew install zlib
+    
     - name: Install dependencies
       run: |
         arch -x86_64 pip3 install --upgrade pip
+        arch -x86_64 pip3 install wheel  # Add wheel package
         arch -x86_64 pip3 install pyinstaller
         arch -x86_64 pip3 install -r requirements.txt
 
