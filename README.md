@@ -4,6 +4,9 @@
 
 🔍 **Clip-Clip-History** is a lightweight clipboard history manager built with **Python** and **PyQt6**, providing a seamless way to manage and access copied text.
 
+
+<img src="./images/preview_2025-03-12_14-52-34.png" alt="Preview" width="300">
+
 <p align="center">
 
 [![Release](https://img.shields.io/github/v/release/yeongpin/clip-clip-history?style=flat-square&logo=github&color=blue)](https://github.com/yeongpin/clip-clip-history/releases/latest)
