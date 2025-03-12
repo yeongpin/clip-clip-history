@@ -9,3 +9,4 @@
 1.0.2
 - Add close button behavior setting
 - Add minimize to tray setting
+- Remove unused config.py
