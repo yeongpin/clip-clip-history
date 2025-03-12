@@ -23,7 +23,7 @@ rm -rf build dist
 
 # Build executable
 echo "Building executable..."
-pyinstaller ClipClip.spec
+pyinstaller build.spec
 
 echo "Build complete!"
 echo "Executable can be found in the dist folder"

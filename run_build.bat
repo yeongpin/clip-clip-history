@@ -37,11 +37,7 @@ if exist dist rmdir /s /q dist
 
 :: Build executable
 echo Building executable...
-pyinstaller ClipClip.spec
-
-:: Create installer
-echo Creating installer...
-makensis installer.nsi
+pyinstaller build.spec
 
 echo Build complete!
 echo Installer can be found in the dist folder
