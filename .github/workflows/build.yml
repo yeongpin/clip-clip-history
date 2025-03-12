@@ -96,7 +96,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ClipClip-${{ env.VERSION }}-mac-arm64
-        path: dist/ClipClip-${{ env.VERSION }}-mac
+        path: dist/ClipClip-${{ env.VERSION }}-mac-arm64
 
   build-linux-x64:
     needs: create-tag
