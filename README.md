@@ -36,9 +36,9 @@
 
 <summary>Click to expand</summary>
 
-| ![Preview](.\images\preview_2025-03-12_14-52-34.png) | ![Preview](.\images\preview_2025-03-12_14-53-19.png) |
+| ![Preview](./images/preview_2025-03-12_14-52-34.png) | ![Preview](./images/preview_2025-03-12_14-53-19.png) |
 |--------------------------------------------------------|--------------------------------------------------------|
-| ![Preview](.\images\Preview_2025-03-12_14-54-29.png) | ![Preview](.\images\Preview_2025-03-12_14-54-50.png) |
+| ![Preview](./images/Preview_2025-03-12_14-54-29.png) | ![Preview](./images/Preview_2025-03-12_14-54-50.png) |
 
 </details>
 
