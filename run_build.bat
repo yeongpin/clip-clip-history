@@ -8,6 +8,14 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:: Check if NSIS is installed
+makensis /VERSION >nul 2>&1
+if errorlevel 1 (
+    echo Error: NSIS is not installed or not in PATH
+    echo Please install NSIS from https://nsis.sourceforge.io/Download
+    exit /b 1
+)
+
 :: Check if virtual environment exists
 if not exist venv (
     echo Creating virtual environment...
@@ -31,8 +39,12 @@ if exist dist rmdir /s /q dist
 echo Building executable...
 pyinstaller ClipClip.spec
 
+:: Create installer
+echo Creating installer...
+makensis installer.nsi
+
 echo Build complete!
-echo Executable can be found in the dist folder
+echo Installer can be found in the dist folder
 
 :: Deactivate virtual environment
 deactivate

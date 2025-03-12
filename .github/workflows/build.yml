@@ -1,0 +1,334 @@
+name: Build Executables
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 1.0.9)'
+        required: true
+        default: '1.0.4'
+
+permissions:
+  contents: write
+  actions: write
+  packages: write
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # 获取所有标签
+          
+      - name: Delete existing tag if exists
+        run: |
+          if git ls-remote --tags origin | grep -q "refs/tags/v${{ github.event.inputs.version }}"; then
+            git push origin --delete "v${{ github.event.inputs.version }}" || true
+            git tag -d "v${{ github.event.inputs.version }}" || true
+          fi
+          
+      - name: Create Tag
+        run: |
+          git tag "v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
+
+  build-windows:
+    needs: create-tag
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Install NSIS
+      run: |
+        choco install nsis -y
+        
+    - name: Build EXE and Installer
+      run: |
+        pyinstaller ClipClip.spec
+        makensis installer.nsi
+         
+    - name: Upload Windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-windows-setup.exe
+        path: dist/ClipClip-${{ env.VERSION }}-setup.exe
+
+  build-macos-arm64:
+    needs: create-tag
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Build MacOS ARM executable
+      run: |
+        pyinstaller ClipClip.spec
+        mv "dist/ClipClip-${{ env.VERSION }}-mac" "dist/ClipClip-${{ env.VERSION }}-mac-arm64"
+
+    - name: Create DMG
+      run: |
+        TEMP_DMG="./dist/dmg_temp"
+        mkdir -p "$TEMP_DMG"
+        cp -r "dist/ClipClip-${{ env.VERSION }}-mac-arm64" "$TEMP_DMG/ClipClip.app"
+        ln -s /Applications "$TEMP_DMG/Applications"
+        hdiutil create -volname "ClipClip" -srcfolder "$TEMP_DMG" -ov -format UDZO "dist/ClipClip-${{ env.VERSION }}-mac-arm64.dmg"
+        rm -rf "$TEMP_DMG"
+
+    - name: Upload MacOS ARM DMG
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-mac-arm64.dmg
+        path: dist/ClipClip-${{ env.VERSION }}-mac-arm64.dmg
+
+  build-linux-x64:
+    needs: create-tag
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Build Linux x64 executable
+      env:
+        VERSION: ${{ env.VERSION }}
+      run: |
+        pyinstaller ClipClip.spec
+        mv "dist/ClipClip-${{ env.VERSION }}-linux" "dist/ClipClip-${{ env.VERSION }}-linux-x64"
+        echo "Contents of dist directory:"
+        ls -la dist/
+        
+    - name: Create DEB package
+      run: |
+        PKG_ROOT="./dist/linux_pkg"
+        mkdir -p "$PKG_ROOT/DEBIAN"
+        mkdir -p "$PKG_ROOT/usr/local/bin"
+        mkdir -p "$PKG_ROOT/usr/share/applications"
+        mkdir -p "$PKG_ROOT/usr/share/icons/hicolor/scalable/apps"
+        
+        cp "dist/ClipClip-${{ env.VERSION }}-linux-x64" "$PKG_ROOT/usr/local/bin/clipclip"
+        chmod +x "$PKG_ROOT/usr/local/bin/clipclip"
+        
+        cp "src/resources/clip_clip_icon.svg" "$PKG_ROOT/usr/share/icons/hicolor/scalable/apps/clipclip.svg"
+        
+        # Create desktop entry
+        echo "[Desktop Entry]
+        Name=ClipClip
+        Exec=/usr/local/bin/clipclip
+        Icon=clipclip
+        Type=Application
+        Categories=Utility;" > "$PKG_ROOT/usr/share/applications/clipclip.desktop"
+        
+        # Create control file
+        echo "Package: clipclip
+        Version: ${{ env.VERSION }}
+        Section: utils
+        Priority: optional
+        Architecture: amd64
+        Maintainer: $(grep author .env | cut -d= -f2)
+        Description: Clipboard History Manager
+         A lightweight clipboard history tool." > "$PKG_ROOT/DEBIAN/control"
+        
+        dpkg-deb --build "$PKG_ROOT" "dist/clipclip-${{ env.VERSION }}-amd64.deb"
+
+    - name: Upload Linux x64 executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-linux-x64
+        path: dist/ClipClip-${{ env.VERSION }}-linux-x64
+
+    - name: Upload Linux DEB package
+      uses: actions/upload-artifact@v4
+      with:
+        name: clipclip-${{ env.VERSION }}-amd64.deb
+        path: dist/clipclip-${{ env.VERSION }}-amd64.deb
+
+  build-linux-arm64:
+    needs: create-tag
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: arm64
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Build in ARM64 Docker container
+      run: |
+        docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/app -w /app arm64v8/python:3.9-slim bash -c "
+          apt-get update && apt-get install -y build-essential
+          pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
+          python -m PyInstaller ClipClip.spec
+          mv /app/dist/ClipClip-${{ env.VERSION }}-linux /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64
+          
+          # Create DEB package
+          PKG_ROOT=/app/dist/linux_pkg
+          mkdir -p \$PKG_ROOT/DEBIAN
+          mkdir -p \$PKG_ROOT/usr/local/bin
+          mkdir -p \$PKG_ROOT/usr/share/applications
+          mkdir -p \$PKG_ROOT/usr/share/icons/hicolor/scalable/apps
+          
+          cp /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 \$PKG_ROOT/usr/local/bin/clipclip
+          chmod +x \$PKG_ROOT/usr/local/bin/clipclip
+          
+          cp /app/src/resources/clip_clip_icon.svg \$PKG_ROOT/usr/share/icons/hicolor/scalable/apps/clipclip.svg
+          
+          echo '[Desktop Entry]
+          Name=ClipClip
+          Exec=/usr/local/bin/clipclip
+          Icon=clipclip
+          Type=Application
+          Categories=Utility;' > \$PKG_ROOT/usr/share/applications/clipclip.desktop
+          
+          echo 'Package: clipclip
+          Version: ${{ env.VERSION }}
+          Section: utils
+          Priority: optional
+          Architecture: arm64
+          Maintainer: $(grep author .env | cut -d= -f2)
+          Description: Clipboard History Manager
+           A lightweight clipboard history tool.' > \$PKG_ROOT/DEBIAN/control
+          
+          dpkg-deb --build \$PKG_ROOT /app/dist/clipclip-${{ env.VERSION }}-arm64.deb
+        "
+        
+    - name: Upload Linux ARM64 DEB package
+      uses: actions/upload-artifact@v4
+      with:
+        name: clipclip-${{ env.VERSION }}-arm64.deb
+        path: dist/clipclip-${{ env.VERSION }}-arm64.deb
+
+  build-macos-intel:
+    needs: create-tag
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: |
+        arch -x86_64 pip3 install --upgrade pip
+        arch -x86_64 pip3 install pyinstaller
+        arch -x86_64 pip3 install -r requirements.txt
+
+    - name: Build MacOS Intel executable
+      env:
+        TARGET_ARCH: 'x86_64'
+        VERSION: ${{ env.VERSION }}
+      run: |
+        arch -x86_64 python3 -m PyInstaller ClipClip.spec
+        mv "dist/ClipClip-${{ env.VERSION }}-mac" "dist/ClipClip-${{ env.VERSION }}-mac-intel"
+        
+    - name: Create DMG
+      run: |
+        TEMP_DMG="./dist/dmg_temp"
+        mkdir -p "$TEMP_DMG"
+        cp -r "dist/ClipClip-${{ env.VERSION }}-mac-intel" "$TEMP_DMG/ClipClip.app"
+        ln -s /Applications "$TEMP_DMG/Applications"
+        hdiutil create -volname "ClipClip" -srcfolder "$TEMP_DMG" -ov -format UDZO "dist/ClipClip-${{ env.VERSION }}-mac-intel.dmg"
+        rm -rf "$TEMP_DMG"
+        
+    - name: Upload MacOS Intel DMG
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-mac-intel.dmg
+        path: dist/ClipClip-${{ env.VERSION }}-mac-intel.dmg
+
+  create-release:
+    needs: [build-windows, build-macos-arm64, build-linux-x64, build-linux-arm64, build-macos-intel]
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          cd artifacts
+          echo "Contents of artifacts directory:"
+          ls -la
+          echo "Contents of subdirectories:"
+          ls -la */
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          files: |
+            artifacts/ClipClip-${{ env.VERSION }}-windows-setup.exe/ClipClip-${{ env.VERSION }}-setup.exe
+            artifacts/ClipClip-${{ env.VERSION }}-mac-arm64.dmg/ClipClip-${{ env.VERSION }}-mac-arm64.dmg
+            artifacts/ClipClip-${{ env.VERSION }}-mac-intel.dmg/ClipClip-${{ env.VERSION }}-mac-intel.dmg
+            artifacts/clipclip-${{ env.VERSION }}-amd64.deb/clipclip-${{ env.VERSION }}-amd64.deb
+            artifacts/clipclip-${{ env.VERSION }}-arm64.deb/clipclip-${{ env.VERSION }}-arm64.deb
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
