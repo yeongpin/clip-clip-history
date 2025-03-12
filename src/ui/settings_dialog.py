@@ -11,11 +11,11 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QSpinBox, QCheckBox,
     QPushButton, QFileDialog, QComboBox,
-    QGroupBox, QTabWidget, QWidget, QApplication
+    QGroupBox, QTabWidget, QWidget, QApplication, QTextBrowser
 )
 from PyQt6.QtCore import Qt
 from utils.theme_manager import ThemeManager
-
+import webbrowser
 class SettingsDialog(QDialog):
     def __init__(self, config_manager, parent=None):
         """
@@ -169,6 +169,60 @@ class SettingsDialog(QDialog):
         # Add storage tab
         tabs.addTab(storage_tab, "Storage")
         
+        # About tab
+        about_tab = QWidget()
+        about_layout = QVBoxLayout(about_tab)
+        
+        # Load version from .env
+        version = self.load_version()
+
+        author = self.load_author()
+        project_url = self.load_project_url()
+        
+        # App info
+        info_text = f"""
+        <h2>ClipClip History</h2>
+        <p>Version: {version}</p>
+        <p>A lightweight clipboard history manager.</p>
+        <br>
+        <p><b>Author:</b> {author}</p>
+        <p><b>GitHub:</b> <a href="{project_url}">{project_url}</a></p>
+        """
+        
+        info_label = QLabel(info_text)
+        info_label.setOpenExternalLinks(True)
+        info_label.setTextFormat(Qt.TextFormat.RichText)
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        about_layout.addWidget(info_label)
+
+        github_button = QPushButton("GitHub")
+        github_button.clicked.connect(self.open_github)
+        about_layout.addWidget(github_button)
+        
+        # Check for updates button
+        update_button = QPushButton("Check for Updates")
+        update_button.clicked.connect(self.check_updates)
+        about_layout.addWidget(update_button)
+        about_layout.addStretch()
+        
+        tabs.addTab(about_tab, "About")
+        
+        # Changelog tab
+        changelog_tab = QWidget()
+        changelog_layout = QVBoxLayout(changelog_tab)
+        
+        changelog_browser = QTextBrowser()
+        changelog_browser.setOpenExternalLinks(True)
+        
+        # Load changelog content
+        changelog_content = self.load_changelog()
+        changelog_browser.setMarkdown(changelog_content)
+        
+        changelog_layout.addWidget(changelog_browser)
+        
+        tabs.addTab(changelog_tab, "Changelog")
+        
         layout.addWidget(tabs)
         
         # Dialog buttons
@@ -302,3 +356,61 @@ class SettingsDialog(QDialog):
         
         # Close dialog
         super().accept() 
+
+    def load_author(self):
+        """Load author from .env file"""
+        try:
+            env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+            with open(env_path, 'r') as f:
+                for line in f:
+                    if line.startswith('author'):
+                        return line.split('=')[1].strip()
+        except Exception as e:
+            print(f"Error loading author: {e}")
+        return "Unknown"
+    
+    def load_project_url(self):
+        """Load project URL from .env file"""
+        try:
+            env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+            with open(env_path, 'r') as f:
+                for line in f:
+                    if line.startswith('project_url'):
+                        return line.split('=')[1].strip()
+        except Exception as e:
+            print(f"Error loading project URL: {e}")
+            return "Unknown"
+
+    def load_version(self):
+        """Load version from .env file"""
+        try:
+            env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+            with open(env_path, 'r') as f:
+                for line in f:
+                    if line.startswith('version'):
+                        return line.split('=')[1].strip()
+        except Exception as e:
+            print(f"Error loading version: {e}")
+        return "Unknown"
+
+    def load_changelog(self):
+        """Load changelog from CHANGELOG.md"""
+        try:
+            changelog_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                'CHANGELOG.md'
+            )
+            with open(changelog_path, 'r') as f:
+                return f.read()
+        except Exception as e:
+            print(f"Error loading changelog: {e}")
+            return "Failed to load changelog"
+
+    def check_updates(self):
+        """Check for updates"""
+        # TODO: Implement update checking
+        pass 
+
+    def open_github(self):
+        """Open GitHub page"""
+        webbrowser.open(self.load_project_url())
