@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QCalendarWidget, QComboBox, QListWidget, QPushButton
+    QCalendarWidget, QComboBox, QListWidget, QPushButton,
+    QLineEdit
 )
 from PyQt6.QtCore import Qt, QSize
 from datetime import datetime
@@ -41,6 +42,26 @@ class FilterTab(QWidget):
         filter_layout.addStretch()
         
         layout.addLayout(filter_layout)
+        
+        # 添加搜索欄
+        search_layout = QHBoxLayout()
+        search_layout.setContentsMargins(0, 10, 0, 10)  # 添加一些垂直間距
+        
+        search_label = QLabel("Search:")
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Enter keywords to search...")
+        self.search_input.textChanged.connect(self.on_search_changed)
+        
+        # 清除搜索按鈕
+        clear_button = QPushButton("Clear")
+        clear_button.setFixedWidth(60)
+        clear_button.clicked.connect(self.clear_search)
+        
+        search_layout.addWidget(search_label)
+        search_layout.addWidget(self.search_input)
+        search_layout.addWidget(clear_button)
+        
+        layout.addLayout(search_layout)
         
         # 添加日曆
         self.calendar = QCalendarWidget()
@@ -84,26 +105,65 @@ class FilterTab(QWidget):
         self.filter_combo.setCurrentIndex(3)
         self.filter_items_by_date(date.toPyDate())
         
-    def filter_items(self, days):
-        """Filter items by number of days"""
+    def on_search_changed(self, text):
+        """處理搜索文本變化"""
+        # 獲取當前日期過濾條件下的項目
+        current_filter = self.filter_combo.currentIndex()
+        if current_filter == 0:  # Last 30 days
+            self.filter_items(30, search_text=text)
+        elif current_filter == 1:  # Last 7 days
+            self.filter_items(7, search_text=text)
+        elif current_filter == 2:  # Today
+            self.filter_items(1, search_text=text)
+        elif current_filter == 3:  # Custom date
+            selected_date = self.calendar.selectedDate()
+            self.filter_items_by_date(selected_date.toPyDate(), search_text=text)
+    
+    def clear_search(self):
+        """清除搜索"""
+        self.search_input.clear()
+        self.on_search_changed("")
+    
+    def filter_items(self, days, search_text=""):
+        """過濾項目"""
         self.filtered_items_list.clear()
         items = self.main_window.storage.get_items()
         cutoff_time = time.time() - (days * 24 * 60 * 60)
-        filtered_items = [item for item in items if item.timestamp >= cutoff_time]
-        self.main_window._populate_items_list(self.filtered_items_list, filtered_items)
         
-    def filter_items_by_date(self, date):
-        """Filter items by specific date"""
+        # 先按時間過濾
+        filtered_items = [item for item in items if item.timestamp >= cutoff_time]
+        
+        # 如果有搜索文本，進一步過濾
+        if search_text:
+            search_text = search_text.lower()
+            filtered_items = [
+                item for item in filtered_items
+                if (item.content_type == "text" and search_text in item.content.lower())
+            ]
+        
+        self.main_window._populate_items_list(self.filtered_items_list, filtered_items)
+    
+    def filter_items_by_date(self, date, search_text=""):
+        """按日期過濾項目"""
         self.filtered_items_list.clear()
         items = self.main_window.storage.get_items()
         
         start_time = datetime.combine(date, datetime.min.time()).timestamp()
         end_time = datetime.combine(date, datetime.max.time()).timestamp()
         
+        # 先按日期過濾
         filtered_items = [
             item for item in items 
             if start_time <= item.timestamp <= end_time
         ]
+        
+        # 如果有搜索文本，進一步過濾
+        if search_text:
+            search_text = search_text.lower()
+            filtered_items = [
+                item for item in filtered_items
+                if (item.content_type == "text" and search_text in item.content.lower())
+            ]
         
         self.main_window._populate_items_list(self.filtered_items_list, filtered_items)
         

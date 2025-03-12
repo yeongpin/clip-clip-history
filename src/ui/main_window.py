@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QListWidget, QListWidgetItem, QMenu,
     QSystemTrayIcon, QLabel, QTabWidget, QDialog,
     QMessageBox, QApplication, QStyle, QSplitter, QTextEdit,
-    QCalendarWidget, QComboBox
+    QCalendarWidget, QComboBox, QLineEdit
 )
 from PyQt6.QtGui import QIcon, QPixmap, QImage, QAction
 from PyQt6.QtCore import Qt, QSize, QBuffer, QByteArray, QIODevice, QMetaObject, Q_ARG, pyqtSignal, QUrl, QMimeData, QTimer
@@ -102,6 +102,26 @@ class MainWindow(QMainWindow):
     def setup_history_tab(self):
         """Setup the history tab"""
         layout = QVBoxLayout(self.history_tab)
+        
+        # 添加搜索欄
+        search_layout = QHBoxLayout()
+        search_layout.setContentsMargins(0, 0, 0, 10)  # 底部間距
+        
+        search_label = QLabel("Search:")
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Enter keywords to search...")
+        self.search_input.textChanged.connect(self.on_search_changed)
+        
+        # 清除搜索按鈕
+        clear_button = QPushButton("Clear")
+        clear_button.setFixedWidth(60)
+        clear_button.clicked.connect(lambda: self.search_input.clear())
+        
+        search_layout.addWidget(search_label)
+        search_layout.addWidget(self.search_input)
+        search_layout.addWidget(clear_button)
+        
+        layout.addLayout(search_layout)
         
         # Create list widget for clipboard items
         self.items_list = QListWidget()
@@ -426,10 +446,13 @@ class MainWindow(QMainWindow):
         QApplication.quit()
         
     def closeEvent(self, event):
-        """Handle window close event"""
-        # Hide instead of close
-        event.ignore()
-        self.hide()
+        """處理窗口關閉事件"""
+        if self.config.get_minimize_to_tray():
+            event.ignore()
+            self.hide()
+        else:
+            event.accept()
+            QApplication.quit()
         
     def on_item_double_clicked(self, item):
         """Handle double click on item"""
@@ -534,4 +557,23 @@ class MainWindow(QMainWindow):
             # Store item ID
             list_item.setData(Qt.ItemDataRole.UserRole, item.id)
             
-            list_widget.addItem(list_item) 
+            list_widget.addItem(list_item)
+
+    def on_search_changed(self, text):
+        """處理搜索文本變化"""
+        items = self.storage.get_items()
+        self.items_list.clear()
+        
+        # 如果搜索文本為空，顯示所有項目
+        if not text:
+            self._populate_items_list(self.items_list, items)
+            return
+        
+        # 過濾項目
+        search_text = text.lower()
+        filtered_items = [
+            item for item in items
+            if item.content_type == "text" and search_text in item.content.lower()
+        ]
+        
+        self._populate_items_list(self.items_list, filtered_items) 

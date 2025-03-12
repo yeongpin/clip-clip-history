@@ -27,6 +27,7 @@ class SettingsDialog(QDialog):
         """
         super().__init__(parent)
         
+        # 直接使用 SettingsConfig
         self.config = config_manager
         
         self.setWindowTitle("Settings")
@@ -89,7 +90,17 @@ class SettingsDialog(QDialog):
         self.startup_checkbox = QCheckBox("Start on system boot")
         startup_layout.addWidget(self.startup_checkbox)
         
+        # 添加關閉行為設置
+        close_group = QGroupBox("Close Button Behavior")
+        close_layout = QVBoxLayout(close_group)
+        
+        self.minimize_to_tray = QCheckBox("Minimize to tray when clicking close button")
+        self.minimize_to_tray.setToolTip("If unchecked, the application will exit when clicking close")
+        close_layout.addWidget(self.minimize_to_tray)
+        
         general_layout.addWidget(startup_group)
+        general_layout.addWidget(close_group)
+        general_layout.addStretch()
         
         # Theme settings
         theme_group = QGroupBox("Theme")
@@ -194,6 +205,9 @@ class SettingsDialog(QDialog):
         # Load general settings
         self.startup_checkbox.setChecked(self.config.get_startup())
         
+        # 加載關閉行為設置
+        self.minimize_to_tray.setChecked(self.config.get_minimize_to_tray())
+        
         # 設置當前主題
         current_theme = self.config.get_theme()
         # 查找主題在下拉列表中的索引
@@ -282,6 +296,9 @@ class SettingsDialog(QDialog):
         # Save storage settings
         self.config.set_storage_path(self.path_edit.text())
         self.config.set_max_items(self.max_items_spin.value())
+        
+        # Save close behavior settings
+        self.config.set_minimize_to_tray(self.minimize_to_tray.isChecked())
         
         # Close dialog
         super().accept() 

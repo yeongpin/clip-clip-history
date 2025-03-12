@@ -10,7 +10,8 @@ class SettingsConfig:
         'General': {
             'hotkey': 'ctrl+shift+q',
             'startup': 'false',
-            'theme': 'system'
+            'theme': 'system',
+            'minimize_to_tray': 'true'
         },
         'Storage': {
             'max_items': '100'
@@ -136,4 +137,12 @@ class SettingsConfig:
         if current_version != new_version:
             print(f"Upgrading config from version {current_version} to {new_version}")
             # 在這裡添加版本升級邏輯
-            self.set('General', 'version', new_version) 
+            self.set('General', 'version', new_version)
+    
+    def get_minimize_to_tray(self):
+        """獲取關閉按鈕行為設置"""
+        return self.get('General', 'minimize_to_tray', 'true').lower() == 'true'
+    
+    def set_minimize_to_tray(self, value):
+        """設置關閉按鈕行為"""
+        self.set('General', 'minimize_to_tray', str(value).lower()) 
