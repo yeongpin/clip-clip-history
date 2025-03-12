@@ -1,3 +1,15 @@
+
+1.0.4
+- Add icon to the application
+- Add version to the application
+- Add author to the application
+- Add project URL to the application
+- Add license to the application
+- Fix hotkey not working
+- Fix filter not working
+- Fix toggle visibility not working
+- Fix after hotkey binding cant input binding key text
+
 1.0.3
 - Add About tab
 - Add Changelog tab

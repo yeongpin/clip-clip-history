@@ -16,6 +16,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from utils.theme_manager import ThemeManager
 import webbrowser
+import sys
+
 class SettingsDialog(QDialog):
     def __init__(self, config_manager, parent=None):
         """
@@ -70,14 +72,19 @@ class SettingsDialog(QDialog):
         key_layout = QHBoxLayout()
         key_layout.addWidget(QLabel("Key:"))
         self.key_edit = QLineEdit()
-        self.key_edit.setMaxLength(1)  # limit to one character
+        
+        # Add key press event handler
+        self.key_edit.keyPressEvent = self.handle_key_press
+        self.key_edit.setReadOnly(True)  # Make it read-only to handle input manually
+        
         key_layout.addWidget(self.key_edit)
         
         hotkey_layout.addLayout(modifier_layout)
         hotkey_layout.addLayout(key_layout)
         
         # add help label
-        help_label = QLabel("Select modifiers and enter a letter or number")
+        help_label = QLabel("Recommended: Use function keys (F1-F12) or special keys\n"
+                           "to avoid blocking normal keyboard input.")
         help_label.setStyleSheet("color: gray;")
         hotkey_layout.addWidget(help_label)
         
@@ -360,7 +367,7 @@ class SettingsDialog(QDialog):
     def load_author(self):
         """Load author from .env file"""
         try:
-            env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+            env_path = self.get_resource_path('.env')
             with open(env_path, 'r') as f:
                 for line in f:
                     if line.startswith('author'):
@@ -372,7 +379,7 @@ class SettingsDialog(QDialog):
     def load_project_url(self):
         """Load project URL from .env file"""
         try:
-            env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+            env_path = self.get_resource_path('.env')
             with open(env_path, 'r') as f:
                 for line in f:
                     if line.startswith('project_url'):
@@ -381,10 +388,20 @@ class SettingsDialog(QDialog):
             print(f"Error loading project URL: {e}")
             return "Unknown"
 
+    def get_resource_path(self, relative_path):
+        """Get absolute path to resource, works for dev and for PyInstaller"""
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        
+        return os.path.join(base_path, relative_path)
+
     def load_version(self):
         """Load version from .env file"""
         try:
-            env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
+            env_path = self.get_resource_path('.env')
             with open(env_path, 'r') as f:
                 for line in f:
                     if line.startswith('version'):
@@ -396,10 +413,7 @@ class SettingsDialog(QDialog):
     def load_changelog(self):
         """Load changelog from CHANGELOG.md"""
         try:
-            changelog_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                'CHANGELOG.md'
-            )
+            changelog_path = self.get_resource_path('CHANGELOG.md')
             with open(changelog_path, 'r') as f:
                 return f.read()
         except Exception as e:
@@ -414,3 +428,20 @@ class SettingsDialog(QDialog):
     def open_github(self):
         """Open GitHub page"""
         webbrowser.open(self.load_project_url())
+
+    def handle_key_press(self, event):
+        """Handle key press in key edit box"""
+        key = None
+        
+        # Handle function keys
+        if Qt.Key.Key_F1 <= event.key() <= Qt.Key.Key_F12:
+            key = f"F{event.key() - Qt.Key.Key_F1 + 1}"
+        else:
+            # Handle normal keys
+            key = event.text().upper()
+        
+        # Update text if we have a valid key
+        if key:
+            self.key_edit.setText(key)
+        elif event.key() in (Qt.Key.Key_Backspace, Qt.Key.Key_Delete):
+            self.key_edit.clear()

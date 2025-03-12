@@ -1,0 +1,67 @@
+# -*- mode: python ; coding: utf-8 -*-
+import os
+import platform
+from dotenv import load_dotenv
+
+# load version from .env file
+with open('.env', 'r') as f:
+    for line in f:
+        if line.startswith('version'):
+            version = line.split('=')[1].strip()
+            break
+    else:
+        version = '1.0.0'
+
+# set output name based on system type
+system = platform.system().lower()
+if system == "windows":
+    os_type = "win"
+elif system == "linux":
+    os_type = "linux"
+else:  # Darwin
+    os_type = "mac"
+
+output_name = f"ClipClip-{version}-{os_type}"
+
+a = Analysis(
+    ['src/main.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        ('.env', '.'),
+        ('CHANGELOG.md', '.'),
+        ('LICENSE', '.'),
+        ('README.md', '.'),
+        ('src/resources', 'resources')
+    ],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+)
+
+pyz = PYZ(a.pure)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name=output_name,
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon='src/resources/clip_clip_icon.ico'
+)

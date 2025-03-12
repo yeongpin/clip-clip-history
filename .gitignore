@@ -12,3 +12,6 @@ ENV/
 .vscode/
 .idea/
 *.swp 
+
+build/
+dist/

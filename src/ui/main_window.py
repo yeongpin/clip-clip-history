@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         self.config = config_manager
         self.clipboard = QApplication.clipboard()
         
-        self.setWindowTitle("ClipClip History")
+        self.setWindowTitle("ClipClip History" + " " + self.get_version())
         self.setMinimumSize(600, 400)
         
         # set window attribute to receive global hotkeys
@@ -60,6 +60,28 @@ class MainWindow(QMainWindow):
         
         # Show window initially
         self.show()
+
+    def get_resource_path(self, relative_path):
+        """Get absolute path to resource, works for dev and for PyInstaller"""
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        
+        return os.path.join(base_path, relative_path)
+
+    def get_version(self):
+        """Load version from .env file"""
+        try:
+            env_path = self.get_resource_path('.env')
+            with open(env_path, 'r') as f:
+                for line in f:
+                    if line.startswith('version'):
+                        return line.split('=')[1].strip()
+        except Exception as e:
+            print(f"Error loading version: {e}")
+        return "Unknown"
         
     def setup_ui(self):
         """Setup the user interface"""
@@ -194,10 +216,11 @@ class MainWindow(QMainWindow):
                 self.show()
                 self.activateWindow()
                 self.raise_()
-                # ensure window is in front
+                # 確保窗口在前台
                 self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
         except Exception as e:
             print(f"Error in toggle_visibility: {e}")
+            
             
     def load_clipboard_items(self):
         """Load clipboard items from storage"""
@@ -389,6 +412,18 @@ class MainWindow(QMainWindow):
             
             # Reload items
             self.load_clipboard_items()
+
+            # Refresh filter tab based on current filter
+            current_filter = self.filter_tab.filter_combo.currentIndex()
+            if current_filter == 0:  # Last 30 days
+                self.filter_tab.filter_items(30)
+            elif current_filter == 1:  # Last 7 days
+                self.filter_tab.filter_items(7)
+            elif current_filter == 2:  # Today
+                self.filter_tab.filter_items(1)
+            elif current_filter == 3:  # Custom date
+                selected_date = self.filter_tab.calendar.selectedDate()
+                self.filter_tab.filter_items_by_date(selected_date.toPyDate())
             
     def show_settings(self):
         """Show settings dialog"""
