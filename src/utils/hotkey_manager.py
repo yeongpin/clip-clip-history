@@ -51,14 +51,14 @@ class HotkeyManager:
     def register_hotkey(self, hotkey):
         """Register a new hotkey"""
         try:
-            # 先取消註冊舊的熱鍵
+            # unregister old hotkey first
             if self.active:
                 self.unregister_hotkey()
             
             # 更新熱鍵
             self.hotkey = hotkey
             
-            # 在新線程中註冊新的熱鍵
+            # register new hotkey in a separate thread
             self.thread = threading.Thread(target=self._register_hotkey_thread, args=(hotkey,))
             self.thread.daemon = True
             self.thread.start()

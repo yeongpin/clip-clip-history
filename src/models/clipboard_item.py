@@ -77,7 +77,7 @@ class ClipboardItem:
             # For text, show the first line or truncated text
             text = self.content.split('\n')[0] if '\n' in self.content else self.content
             
-            # 檢查是否是文件 URL 格式
+            # check if it is a file URL format
             if text.startswith("file:///"):
                 file_path = text.replace("file:///", "")
                 return os.path.basename(file_path)
@@ -86,7 +86,7 @@ class ClipboardItem:
                 text = text[:max_length] + "..."
             return text
         elif self.content_type == "file":
-            # 對於文件，只顯示文件名
+            # for file, only show file name
             file_path = self.content
             if file_path.startswith("file:///"):
                 file_path = file_path.replace("file:///", "")
@@ -94,7 +94,7 @@ class ClipboardItem:
                 file_path = file_path.replace("file://", "")
             return os.path.basename(file_path)
         elif self.content_type == "url":
-            # 對於 URL，顯示簡短版本
+            # for URL, show a short version
             url = self.content
             if len(url) > max_length:
                 url = url[:max_length-3] + "..."

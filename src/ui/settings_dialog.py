@@ -27,7 +27,7 @@ class SettingsDialog(QDialog):
         """
         super().__init__(parent)
         
-        # 直接使用 SettingsConfig
+        # directly use SettingsConfig
         self.config = config_manager
         
         self.setWindowTitle("Settings")
@@ -54,7 +54,7 @@ class SettingsDialog(QDialog):
         hotkey_group = QGroupBox("Hotkey")
         hotkey_layout = QVBoxLayout(hotkey_group)
         
-        # 修飾鍵複選框
+        # modifier checkbox
         modifier_layout = QHBoxLayout()
         self.shift_check = QCheckBox("Shift")
         self.ctrl_check = QCheckBox("Ctrl")
@@ -66,17 +66,17 @@ class SettingsDialog(QDialog):
         modifier_layout.addWidget(self.alt_check)
         modifier_layout.addWidget(self.win_check)
         
-        # 按鍵輸入框
+        # key input box
         key_layout = QHBoxLayout()
         key_layout.addWidget(QLabel("Key:"))
         self.key_edit = QLineEdit()
-        self.key_edit.setMaxLength(1)  # 限制只能輸入一個字符
+        self.key_edit.setMaxLength(1)  # limit to one character
         key_layout.addWidget(self.key_edit)
         
         hotkey_layout.addLayout(modifier_layout)
         hotkey_layout.addLayout(key_layout)
         
-        # 添加說明標籤
+        # add help label
         help_label = QLabel("Select modifiers and enter a letter or number")
         help_label.setStyleSheet("color: gray;")
         hotkey_layout.addWidget(help_label)
@@ -90,7 +90,7 @@ class SettingsDialog(QDialog):
         self.startup_checkbox = QCheckBox("Start on system boot")
         startup_layout.addWidget(self.startup_checkbox)
         
-        # 添加關閉行為設置
+        # add close behavior settings
         close_group = QGroupBox("Close Button Behavior")
         close_layout = QVBoxLayout(close_group)
         
@@ -109,7 +109,7 @@ class SettingsDialog(QDialog):
         self.theme_combo = QComboBox()
         self.theme_combo.addItem("System")
         
-        # 添加所有可用主題
+        # add all available themes
         available_themes = ThemeManager.get_available_themes()
         for theme_name in available_themes.keys():
             self.theme_combo.addItem(theme_name.title())
@@ -188,29 +188,29 @@ class SettingsDialog(QDialog):
         
     def load_settings(self):
         """Load current settings"""
-        # 載入熱鍵設置
+        # load hotkey settings
         current_hotkey = self.config.get_hotkey()
         modifiers = current_hotkey.lower().split("+")
         
-        # 設置修飾鍵狀態
+        # set modifier status
         self.shift_check.setChecked("shift" in modifiers)
         self.ctrl_check.setChecked("ctrl" in modifiers)
         self.alt_check.setChecked("alt" in modifiers)
         self.win_check.setChecked("win" in modifiers)
         
-        # 設置主鍵
+        # set main key
         key = modifiers[-1] if modifiers else ""
         self.key_edit.setText(key.upper())
         
         # Load general settings
         self.startup_checkbox.setChecked(self.config.get_startup())
         
-        # 加載關閉行為設置
+        # load close behavior settings
         self.minimize_to_tray.setChecked(self.config.get_minimize_to_tray())
         
-        # 設置當前主題
+        # set current theme
         current_theme = self.config.get_theme()
-        # 查找主題在下拉列表中的索引
+        # find theme index in combo box
         index = self.theme_combo.findText(current_theme.title())
         if index >= 0:
             self.theme_combo.setCurrentIndex(index)
@@ -259,7 +259,7 @@ class SettingsDialog(QDialog):
             
     def accept(self):
         """Save settings and close dialog"""
-        # 構建熱鍵字符串
+        # build hotkey string
         modifiers = []
         if self.shift_check.isChecked():
             modifiers.append("shift")
@@ -276,10 +276,10 @@ class SettingsDialog(QDialog):
             
         new_hotkey = "+".join(modifiers)
         
-        # 保存熱鍵設置
+        # save hotkey settings
         if new_hotkey != self.config.get_hotkey():
             self.config.set_hotkey(new_hotkey)
-            # 更新全局熱鍵
+            # update global hotkey
             app = QApplication.instance()
             if hasattr(app, 'hotkey_manager'):
                 app.hotkey_manager.register_hotkey(new_hotkey)
@@ -287,10 +287,10 @@ class SettingsDialog(QDialog):
         # Save general settings
         self.config.set_startup(self.startup_checkbox.isChecked())
         
-        # 應用主題
-        theme_text = self.theme_combo.currentText()  # 不要轉換為小寫
+        # apply theme
+        theme_text = self.theme_combo.currentText()  # no convert to lower
         print(f"Selected theme: {theme_text}")
-        self.config.set_theme(theme_text.lower())  # 保存時轉換為小寫
+        self.config.set_theme(theme_text.lower())  # save as lower
         ThemeManager.apply_theme(theme_text.lower())
         
         # Save storage settings

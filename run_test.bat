@@ -11,9 +11,9 @@ call venv\Scripts\activate.bat
 echo Installing requirements...
 pip install -r requirements.txt
 
-:: 設置 Python 不生成 __pycache__ 或將其放在 venv 中
+:: set Python not to generate __pycache__ or put it in venv
 set PYTHONPYCACHEPREFIX=venv/__pycache__
-:: 或者完全禁用 __pycache__
+:: or disable __pycache__
 :: set PYTHONDONTWRITEBYTECODE=1
 
 echo Running application...

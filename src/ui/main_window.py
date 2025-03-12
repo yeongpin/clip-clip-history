@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 from ui.settings_dialog import SettingsDialog
 from models.clipboard_item import ClipboardItem
-from ui.filter_tab import FilterTab  # 添加這行
+from ui.filter_tab import FilterTab
 
 class MainWindow(QMainWindow):
     def __init__(self, storage_manager, config_manager):
@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("ClipClip History")
         self.setMinimumSize(600, 400)
         
-        # 設置窗口屬性，使其能夠接收全局快捷鍵
+        # set window attribute to receive global hotkeys
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         
         # Create system tray icon
@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         # Load initial items
         self.load_clipboard_items()
         
-        # 連接剪貼板監視器的信號
+        # connect clipboard monitor signal
         if hasattr(QApplication, 'clipboard_monitor'):
             QApplication.clipboard_monitor.item_added_signal.connect(self.load_clipboard_items)
         
@@ -103,16 +103,16 @@ class MainWindow(QMainWindow):
         """Setup the history tab"""
         layout = QVBoxLayout(self.history_tab)
         
-        # 添加搜索欄
+        # add search bar
         search_layout = QHBoxLayout()
-        search_layout.setContentsMargins(0, 0, 0, 10)  # 底部間距
+        search_layout.setContentsMargins(0, 0, 0, 10)  # bottom spacing
         
         search_label = QLabel("Search:")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Enter keywords to search...")
         self.search_input.textChanged.connect(self.on_search_changed)
         
-        # 清除搜索按鈕
+        # clear search button
         clear_button = QPushButton("Clear")
         clear_button.setFixedWidth(60)
         clear_button.clicked.connect(lambda: self.search_input.clear())
@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
         self.items_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.items_list.customContextMenuRequested.connect(self.show_context_menu)
         
-        # 設置自動調整大小
+        # set auto adjust size
         self.items_list.setWordWrap(True)
         self.items_list.setTextElideMode(Qt.TextElideMode.ElideRight)
         
@@ -189,7 +189,7 @@ class MainWindow(QMainWindow):
                 self.show()
                 self.activateWindow()
                 self.raise_()
-                # 確保窗口在前台
+                # ensure window is in front
                 self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
         except Exception as e:
             print(f"Error in toggle_visibility: {e}")
@@ -200,18 +200,18 @@ class MainWindow(QMainWindow):
         
         items = self.storage.get_items()
         
-        # 獲取列表寬度，用於計算最大文本長度
+        # get list width, for calculating max text length
         list_width = self.items_list.viewport().width()
-        max_text_width = list_width - 30  # 減去圖標和邊距的寬度
+        max_text_width = list_width - 30  # subtract icon and margin width
         
-        # 估算每個字符的平均寬度（像素）
-        char_width = 8  # 估計值，可以根據實際字體調整
+        # estimate average width of each character (pixels)
+        char_width = 8  # estimated value, can be adjusted based on actual font
         max_chars = max(30, int(max_text_width / char_width))
         
         for item in items:
             list_item = QListWidgetItem()
             
-            # 只處理文本項目
+            # only process text items
             if item.content_type != "text":
                 continue
             
@@ -221,29 +221,29 @@ class MainWindow(QMainWindow):
                 icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
             list_item.setIcon(icon)
             
-            # 獲取顯示文本並處理
+            # get display text and process
             text = item.content
             
-            # 尋找第一個非空的行
+            # find first non-empty line
             if '\n' in text:
                 lines = text.split('\n')
                 text = next((line.strip() for line in lines if line.strip()), '')
             
-            # 去除前後空白
+            # remove front and back spaces
             text = text.strip()
             
-            # 如果所有行都是空的，跳過這個項目
+            # if all lines are empty, skip this item
             if not text:
                 continue
             
-            # 處理中間的多餘空白
-            text = ' '.join(text.split())  # 將多個空白壓縮為一個
+            # process middle extra spaces
+            text = ' '.join(text.split())  # compress multiple spaces into one
             
-            # 如果文本超過最大長度，在有意義的位置截斷
+            # if text exceeds max length, truncate at a meaningful position
             if len(text) > max_chars:
-                # 尋找最後一個完整單詞的位置
+                # find last complete word position
                 last_space = text.rfind(' ', 0, max_chars)
-                if last_space > max_chars // 2:  # 如果找到合適的空格
+                if last_space > max_chars // 2:  # if a suitable space is found
                     text = text[:last_space] + "..."
                 else:
                     text = text[:max_chars] + "..."
@@ -266,7 +266,7 @@ class MainWindow(QMainWindow):
         # Get item ID
         item_id = item.data(Qt.ItemDataRole.UserRole)
         
-        # 獲取項目
+        # get item
         items = self.storage.get_items()
         selected_item = None
         for i in items:
@@ -280,7 +280,7 @@ class MainWindow(QMainWindow):
         # Create context menu
         context_menu = QMenu()
         
-        # 添加查看選項
+        # add view option
         view_action = QAction("View", self)
         view_action.triggered.connect(lambda: self.view_clipboard_item(selected_item))
         
@@ -305,24 +305,24 @@ class MainWindow(QMainWindow):
         
         layout = QVBoxLayout(dialog)
         
-        # 添加時間標籤
+        # add time label
         time_label = QLabel(f"Copied at: {item.get_formatted_time()}")
         layout.addWidget(time_label)
         
-        # 創建文本顯示區域
+        # create text display area
         text_edit = QTextEdit()
         text_edit.setReadOnly(True)
         text_edit.setPlainText(item.content)
         layout.addWidget(text_edit)
         
-        # 創建按鈕佈局
+        # create button layout
         button_layout = QHBoxLayout()
         
-        # 添加複製按鈕
+        # add copy button
         copy_button = QPushButton("Copy")
         copy_button.clicked.connect(lambda: self.copy_from_dialog(item))
         
-        # 添加關閉按鈕
+        # add close button
         close_button = QPushButton("Close")
         close_button.clicked.connect(dialog.close)
         
@@ -336,27 +336,27 @@ class MainWindow(QMainWindow):
     def copy_from_dialog(self, item):
         """Copy content from view dialog"""
         try:
-            # 設置忽略標誌
+            # set ignore flag
             if hasattr(QApplication.instance(), 'clipboard_monitor'):
                 QApplication.instance().clipboard_monitor.ignore_next_change = True
             
-            # 複製到剪貼板
+            # copy to clipboard
             self.clipboard.setText(item.content)
             
-            # 獲取發送信號的按鈕（copy_button）
+            # get the button that sent the signal (copy_button)
             copy_button = self.sender()
             if copy_button:
-                # 暫時改變按鈕文字
+                # temporarily change button text
                 copy_button.setText("Copied!")
-                # 禁用按鈕防止重複點擊
+                # disable button to prevent duplicate clicks
                 copy_button.setEnabled(False)
             
-            # 顯示通知
+            # show notification
             self.tray_icon.showMessage(
                 "Clipboard History",
                 "Text copied to clipboard",
                 QSystemTrayIcon.MessageIcon.Information,
-                1000  # 顯示1秒
+                1000  # show for 1 second
             )
             
         except Exception as e:
@@ -382,19 +382,19 @@ class MainWindow(QMainWindow):
             return
             
         try:
-            # 只處理文本
+            # only process text
             if selected_item.content_type == "text":
                 print(f"Copying text: {selected_item.content[:30]}...")
-                # 設置忽略標誌
+                # set ignore flag
                 if hasattr(QApplication.instance(), 'clipboard_monitor'):
                     QApplication.instance().clipboard_monitor.ignore_next_change = True
-                # 複製到剪貼板
+                # copy to clipboard
                 self.clipboard.setText(selected_item.content)
             else:
                 print(f"Skipping non-text item: {selected_item.content_type}")
                 return
             
-            # 確保剪貼板數據已設置
+            # ensure clipboard data is set
             print(f"Clipboard text after copy: {self.clipboard.text()}")
             
             # Show notification
@@ -446,7 +446,7 @@ class MainWindow(QMainWindow):
         QApplication.quit()
         
     def closeEvent(self, event):
-        """處理窗口關閉事件"""
+        """Handle window close event"""
         if self.config.get_minimize_to_tray():
             event.ignore()
             self.hide()
@@ -481,7 +481,7 @@ class MainWindow(QMainWindow):
         # Get item ID
         item_id = item.data(Qt.ItemDataRole.UserRole)
         
-        # 獲取項目
+        # get item
         items = self.storage.get_items()
         selected_item = None
         for i in items:
@@ -508,12 +508,12 @@ class MainWindow(QMainWindow):
         context_menu.addAction(use_action)
         context_menu.addAction(delete_action)
         
-        # 在正確的位置顯示菜單
+        # show in the correct position
         context_menu.exec(global_pos)
 
     def _populate_items_list(self, list_widget, items):
         """Populate list widget with items"""
-        # 獲取列表寬度
+        # get list width
         list_width = list_widget.viewport().width()
         max_text_width = list_width - 30
         char_width = 8
@@ -531,7 +531,7 @@ class MainWindow(QMainWindow):
                 icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon)
             list_item.setIcon(icon)
             
-            # 處理文本
+            # process text
             text = item.content
             if '\n' in text:
                 lines = text.split('\n')
@@ -560,16 +560,16 @@ class MainWindow(QMainWindow):
             list_widget.addItem(list_item)
 
     def on_search_changed(self, text):
-        """處理搜索文本變化"""
+        """Handle search text change"""
         items = self.storage.get_items()
         self.items_list.clear()
         
-        # 如果搜索文本為空，顯示所有項目
+        # if search text is empty, show all items
         if not text:
             self._populate_items_list(self.items_list, items)
             return
         
-        # 過濾項目
+        # filter items
         search_text = text.lower()
         filtered_items = [
             item for item in items

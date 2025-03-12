@@ -26,8 +26,8 @@ class ClipboardMonitor(QObject):
         self.clipboard = clipboard
         self.storage = storage_manager
         self.last_content_hash = None
-        self.item_added_signal = None  # 將在 main.py 中設置
-        self.ignore_next_change = False  # 新增標誌
+        self.item_added_signal = None  # set in main.py
+        self.ignore_next_change = False  # new flag
         
     def start(self):
         """Start monitoring clipboard changes"""
@@ -39,7 +39,7 @@ class ClipboardMonitor(QObject):
         
     def on_clipboard_change(self):
         """Handle clipboard content change"""
-        # 如果是從應用內複製的，則忽略這次變化
+        # if copied from within the app, ignore this change
         if self.ignore_next_change:
             self.ignore_next_change = False
             return
@@ -51,14 +51,14 @@ class ClipboardMonitor(QObject):
             print("No mime data")
             return
             
-        # 只處理文本內容
+        # only process text content
         if mime_data.hasText():
             print("Processing text")
             self._process_text(mime_data)
         else:
             print("Skipping non-text content")
         
-        # 發出信號通知主窗口更新列表
+        # emit signal to notify main window to update list
         if hasattr(self, 'item_added_signal') and self.item_added_signal is not None:
             print("Emitting item_added_signal")
             self.item_added_signal.emit()
@@ -78,7 +78,7 @@ class ClipboardMonitor(QObject):
             
         self.last_content_hash = content_hash
         
-        # 創建普通文本剪貼板項目
+        # create plain text clipboard item
         item = ClipboardItem(
             content_type="text",
             content=text,
@@ -89,7 +89,7 @@ class ClipboardMonitor(QObject):
         # Save to storage
         self.storage.add_item(item)
         
-        # 發出信號通知主窗口更新列表
+        # emit signal to notify main window to update list
         if self.item_added_signal is not None:
             self.item_added_signal.emit()
     
@@ -131,33 +131,33 @@ class ClipboardMonitor(QObject):
         for url in urls:
             url_string = url.toString()
             
-            # 檢查是否為本地文件
+            # check if it's a local file
             if url.isLocalFile():
-                # 獲取本地文件路徑
+                # get local file path
                 file_path = url.toLocalFile()
                 print(f"Processing local file: {file_path}")
                 
-                # 檢查文件類型
+                # check file type
                 if os.path.isfile(file_path):
-                    # 獲取文件大小
+                    # get file size
                     size = os.path.getsize(file_path)
                     
-                    # 創建剪貼板項目
+                    # create clipboard item
                     item = ClipboardItem(
                         content_type="file",
-                        content=file_path,  # 存儲原始文件路徑，而不是 URL
+                        content=file_path,  # store original file path, not URL
                         timestamp=time.time(),
                         preview=os.path.basename(file_path),
                         size=size
                     )
                     
-                    # 保存到存儲
+                    # save to storage
                     self.storage.add_item(item)
             else:
-                # 處理網絡 URL
+                # process network URL
                 print(f"Processing URL: {url_string}")
                 
-                # 創建剪貼板項目
+                # create clipboard item
                 item = ClipboardItem(
                     content_type="url",
                     content=url_string,
@@ -165,7 +165,7 @@ class ClipboardMonitor(QObject):
                     preview=url_string
                 )
                 
-                # 保存到存儲
+                # save to storage
                 self.storage.add_item(item)
     
     def _process_other_formats(self, mime_data):

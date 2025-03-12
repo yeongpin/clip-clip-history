@@ -21,7 +21,7 @@ from utils.hotkey_manager import HotkeyManager
 from storage_manager import StorageManager
 from utils.theme_manager import ThemeManager
 
-# 創建一個全局信號類
+# Create a global signal class
 class GlobalSignals(QObject):
     item_added = pyqtSignal()
     toggle_visibility = pyqtSignal()
@@ -34,28 +34,28 @@ def main():
     # Initialize components
     config = SettingsConfig()
     
-    # 初始化主題
+    # Initialize themes
     ThemeManager.init_themes()
     
-    # 設置應用圖標
+    # Set application icon
     icon_path = os.path.join(os.path.dirname(__file__), "resources", "clipclip_icon.svg")
     if os.path.exists(icon_path):
         app.setWindowIcon(QIcon(icon_path))
     else:
         print(f"Warning: Icon file not found at {icon_path}")
-        # 使用系統默認圖標
+        # Use system default icon
         app.setWindowIcon(app.style().standardIcon(app.style().StandardPixmap.SP_DialogSaveButton))
     
-    # 應用主題
+    # Apply theme
     current_theme = config.get_theme()
     print(f"Applying theme: {current_theme}")
     ThemeManager.apply_theme(current_theme)
     
-    # 定義 toggle_window 函數
+    # Define toggle_window function
     def toggle_window():
         app.global_signals.toggle_visibility.emit()
     
-    # 創建全局信號
+    # Create global signals
     app.global_signals = GlobalSignals()
     
     storage = StorageManager(config.get_storage_path())
@@ -72,12 +72,12 @@ def main():
     clipboard_monitor.item_added_signal = app.global_signals.item_added
     clipboard_monitor.start()
     
-    # 設置全局快捷鍵
+    # Set global hotkey
     hotkey_str = config.get_hotkey()
     hotkey_manager = HotkeyManager(hotkey_str, toggle_window)
     app.hotkey_manager = hotkey_manager
     
-    # 在單獨的線程中註冊快捷鍵
+    # Register hotkey in a separate thread
     def register_hotkey():
         try:
             keyboard.add_hotkey(hotkey_str, toggle_window)
@@ -92,9 +92,9 @@ def main():
     print("Application started")
     print("Window should be visible now")
     
-    # 設置 Ctrl+C 處理
+    # Set Ctrl+C handling
     import signal
-    signal.signal(signal.SIGINT, signal.SIG_DFL)  # 允許 Ctrl+C 終止程序
+    signal.signal(signal.SIGINT, signal.SIG_DFL)  # Allow Ctrl+C to terminate program
     
     # Run application
     return app.exec()

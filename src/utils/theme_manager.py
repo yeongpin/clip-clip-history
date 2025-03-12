@@ -7,13 +7,13 @@ import os
 import configparser
 
 class ThemeManager:
-    # 主題顏色角色列表 - 使用小寫
+    # list of theme color roles - use lowercase
     REQUIRED_COLORS = [
         'window', 'windowtext', 'base', 'alternatebase', 
         'text', 'button', 'buttontext', 'highlight', 'highlightedtext'
     ]
     
-    # 默認主題顏色 - 使用小寫
+    # default theme colors - use lowercase
     LIGHT_THEME = {
         'window': '240,240,240',
         'windowtext': '0,0,0',
@@ -40,12 +40,12 @@ class ThemeManager:
 
     @staticmethod
     def init_themes():
-        """初始化主題文件夾和默認主題文件"""
+        """initialize theme folder and default theme file"""
         docs_path = os.path.expanduser('~/Documents')
         theme_dir = os.path.join(docs_path, '.clip-history', 'themes')
         os.makedirs(theme_dir, exist_ok=True)
 
-        # 保存默認主題
+        # save default themes
         themes = {
             'light': ThemeManager.LIGHT_THEME,
             'dark': ThemeManager.DARK_THEME
@@ -59,7 +59,7 @@ class ThemeManager:
                 with open(theme_file, 'w') as f:
                     config.write(f)
             else:
-                # 檢查並更新現有主題文件
+                # check and update existing theme file
                 config = configparser.ConfigParser()
                 config.read(theme_file)
                 if 'Colors' not in config:
@@ -75,22 +75,22 @@ class ThemeManager:
 
     @staticmethod
     def validate_and_format_theme(theme_data):
-        """驗證並格式化主題數據"""
+        """validate and format theme data"""
         if not isinstance(theme_data, dict):
             print(f"Invalid theme data type: {type(theme_data)}")
             return None
             
         formatted_theme = {}
         
-        # 檢查是否包含所有必需的顏色角色
+        # check if all required color roles are included
         for role in ThemeManager.REQUIRED_COLORS:
-            # 檢查顏色值格式
+            # check color value format
             if role in theme_data:
                 color_str = theme_data[role]
                 try:
-                    # 嘗試解析顏色值
+                    # try to parse color value
                     if isinstance(color_str, str):
-                        # 如果是字符串格式 "r,g,b"
+                        # if string format "r,g,b"
                         color_values = [int(x.strip()) for x in color_str.split(',')]
                         if len(color_values) == 3:
                             r, g, b = color_values
@@ -107,7 +107,7 @@ class ThemeManager:
 
     @staticmethod
     def get_available_themes():
-        """獲取所有可用的主題"""
+        """get all available themes"""
         theme_dir = os.path.join(os.path.expanduser('~/Documents'), '.clip-history', 'themes')
         themes = {}
         if os.path.exists(theme_dir):
@@ -119,7 +119,7 @@ class ThemeManager:
                     config.read(theme_path)
                     
                     if 'Colors' in config:
-                        # 驗證並格式化主題
+                        # validate and format theme
                         formatted_theme = ThemeManager.validate_and_format_theme(dict(config['Colors']))
                         if formatted_theme:
                             themes[theme_name] = formatted_theme
@@ -128,36 +128,36 @@ class ThemeManager:
 
     @staticmethod
     def _str_to_color(color_str):
-        """將顏色字符串轉換為 QColor"""
+        """convert color string to QColor"""
         try:
             r, g, b = map(int, color_str.split(','))
             return QColor(r, g, b)
         except:
-            return QColor(0, 0, 0)  # 默認黑色
+            return QColor(0, 0, 0)  # default black
 
     @staticmethod
     def apply_theme(theme_name):
-        """應用指定的主題"""
+        """apply specified theme"""
         app = QApplication.instance()
         print(f"Applying theme: {theme_name}")
 
-        # 設置 Fusion 風格
+        # set Fusion style
         app.setStyle("Fusion")
         palette = QPalette()
 
-        # 獲取主題顏色
+        # get theme colors
         if theme_name.lower() == "system":
             is_dark = ThemeManager.is_system_dark_theme()
             colors = ThemeManager.DARK_THEME if is_dark else ThemeManager.LIGHT_THEME
         else:
-            # 嘗試從文件加載主題
+            # try to load theme from file
             themes = ThemeManager.get_available_themes()
             theme_name = theme_name.lower()
             
             if theme_name in themes:
                 colors = themes[theme_name]
             else:
-                # 如果找不到自定義主題，檢查是否是內置主題
+                # if custom theme not found, check if it's built-in theme
                 if theme_name == "dark":
                     print("Using built-in dark theme")
                     colors = ThemeManager.DARK_THEME
@@ -168,7 +168,7 @@ class ThemeManager:
                     print(f"Theme {theme_name} not found, using light theme")
                     colors = ThemeManager.LIGHT_THEME
 
-        # 創建角色名稱映射（注意：QPalette.ColorRole 的屬性是大寫的）
+        # create role name mapping (note: QPalette.ColorRole properties are uppercase)
         role_map = {
             'window': QPalette.ColorRole.Window,
             'windowtext': QPalette.ColorRole.WindowText,
@@ -181,9 +181,9 @@ class ThemeManager:
             'highlightedtext': QPalette.ColorRole.HighlightedText
         }
 
-        # 應用主題顏色
+        # apply theme colors
         for role_name, color_str in colors.items():
-            role_name = role_name.lower()  # 確保角色名稱是小寫的
+            role_name = role_name.lower()  # ensure role name is lowercase
             if role_name in role_map:
                 color = ThemeManager._str_to_color(color_str)
                 palette.setColor(role_map[role_name], color)
@@ -192,7 +192,7 @@ class ThemeManager:
 
     @staticmethod
     def is_system_dark_theme():
-        """檢查系統是否使用深色主題"""
+        """check if system uses dark theme"""
         system = platform.system()
         
         if system == "Windows":
@@ -201,7 +201,7 @@ class ThemeManager:
                 key = winreg.OpenKey(registry, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
                 value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
                 winreg.CloseKey(key)
-                return value == 0  # 0 表示深色主題
+                return value == 0  # 0 means dark theme
             except Exception as e:
                 print(f"Error detecting Windows theme: {e}")
                 return False
