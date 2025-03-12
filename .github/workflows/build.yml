@@ -125,15 +125,15 @@ jobs:
         VERSION: ${{ env.VERSION }}
       run: |
         pyinstaller build.spec
-        mv "dist/ClipClip-${{ env.VERSION }}-linux" "dist/ClipClip-${{ env.VERSION }}-linux_x64"
+        mv "dist/ClipClip-${{ env.VERSION }}-linux" "dist/ClipClip-${{ env.VERSION }}-linux-x64"
         echo "Contents of dist directory:"
         ls -la dist/
         
     - name: Upload Linux x64 artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ClipClip-${{ env.VERSION }}-linux_x64
-        path: dist/ClipClip-${{ env.VERSION }}-linux_x64
+        name: ClipClip-${{ env.VERSION }}-linux-x64
+        path: dist/ClipClip-${{ env.VERSION }}-linux-x64
 
   build-linux-arm64:
     needs: create-tag
@@ -159,8 +159,8 @@ jobs:
           pip install pyinstaller python-dotenv
           pip install -r requirements.txt
           python -m PyInstaller build.spec
-          mv /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 /app/dist/ClipClip-${{ env.VERSION }}-linux_arm64 || true
-          mv /app/dist/ClipClip-${{ env.VERSION }}-linux /app/dist/ClipClip-${{ env.VERSION }}-linux_arm64 || true
+          mv /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 || true
+          mv /app/dist/ClipClip-${{ env.VERSION }}-linux /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 || true
           echo "Contents of dist directory:"
           ls -la dist/
         '
@@ -168,8 +168,8 @@ jobs:
     - name: Upload Linux ARM64 artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ClipClip-${{ env.VERSION }}-linux_arm64
-        path: dist/ClipClip-${{ env.VERSION }}-linux_arm64
+        name: ClipClip-${{ env.VERSION }}-linux-arm64
+        path: dist/ClipClip-${{ env.VERSION }}-linux-arm64
 
   build-macos-amd64:
     needs: create-tag
@@ -236,9 +236,9 @@ jobs:
           files: |
             artifacts/ClipClip-${{ env.VERSION }}-win.exe/ClipClip-${{ env.VERSION }}-win.exe
             artifacts/ClipClip-${{ env.VERSION }}-mac-arm64/ClipClip-${{ env.VERSION }}-mac-arm64
-            artifacts/ClipClip-${{ env.VERSION }}-linux_x64/ClipClip-${{ env.VERSION }}-linux_x64
-            artifacts/ClipClip-${{ env.VERSION }}-linux_arm64/ClipClip-${{ env.VERSION }}-linux_arm64
-            artifacts/ClipClip-${{ env.VERSION }}-mac_amd64/ClipClip-${{ env.VERSION }}-mac_amd64
+            artifacts/ClipClip-${{ env.VERSION }}-linux-x64/ClipClip-${{ env.VERSION }}-linux-x64
+            artifacts/ClipClip-${{ env.VERSION }}-linux-arm64/ClipClip-${{ env.VERSION }}-linux-arm64
+            artifacts/ClipClip-${{ env.VERSION }}-mac-amd64/ClipClip-${{ env.VERSION }}-mac-amd64
           draft: false
           prerelease: false
         env:
