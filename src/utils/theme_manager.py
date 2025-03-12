@@ -81,7 +81,6 @@ class ThemeManager:
             return None
             
         formatted_theme = {}
-        print(f"Formatting theme data: {theme_data}")
         
         # 檢查是否包含所有必需的顏色角色
         for role in ThemeManager.REQUIRED_COLORS:
@@ -97,7 +96,6 @@ class ThemeManager:
                             r, g, b = color_values
                             if 0 <= r <= 255 and 0 <= g <= 255 and 0 <= b <= 255:
                                 formatted_theme[role] = f"{r},{g},{b}"
-                                print(f"Formatted {role}: {formatted_theme[role]}")
                                 continue
                 except Exception as e:
                     print(f"Error formatting color for {role}: {e}")
@@ -150,16 +148,13 @@ class ThemeManager:
         # 獲取主題顏色
         if theme_name.lower() == "system":
             is_dark = ThemeManager.is_system_dark_theme()
-            print(f"System theme detected as: {'dark' if is_dark else 'light'}")
             colors = ThemeManager.DARK_THEME if is_dark else ThemeManager.LIGHT_THEME
         else:
             # 嘗試從文件加載主題
             themes = ThemeManager.get_available_themes()
             theme_name = theme_name.lower()
-            print(f"Available themes: {list(themes.keys())}")
             
             if theme_name in themes:
-                print(f"Using custom theme: {theme_name}")
                 colors = themes[theme_name]
             else:
                 # 如果找不到自定義主題，檢查是否是內置主題
@@ -172,8 +167,6 @@ class ThemeManager:
                 else:
                     print(f"Theme {theme_name} not found, using light theme")
                     colors = ThemeManager.LIGHT_THEME
-
-        print(f"Applying colors: {colors}")
 
         # 創建角色名稱映射（注意：QPalette.ColorRole 的屬性是大寫的）
         role_map = {
@@ -193,7 +186,6 @@ class ThemeManager:
             role_name = role_name.lower()  # 確保角色名稱是小寫的
             if role_name in role_map:
                 color = ThemeManager._str_to_color(color_str)
-                print(f"Setting {role_name} to {color_str}")
                 palette.setColor(role_map[role_name], color)
 
         app.setPalette(palette)
