@@ -153,16 +153,17 @@ jobs:
     
     - name: Build in ARM64 Docker container
       run: |
-        docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/app -w /app arm64v8/python:3.9-slim bash -c "
+        docker run --rm --platform linux/arm64 -v ${{ github.workspace }}:/app -w /app arm64v8/python:3.9-slim bash -c '
           apt-get update && apt-get install -y build-essential
-          pip install --upgrade pip
-          pip install pyinstaller
+          pip install --upgrade pip wheel
+          pip install pyinstaller python-dotenv
           pip install -r requirements.txt
           python -m PyInstaller build.spec
-          mv /app/dist/ClipClip-${{ env.VERSION }}-linux /app/dist/ClipClip-${{ env.VERSION }}-linux_arm64
-        "
-        echo "Contents of dist directory:"
-        ls -la dist/
+          mv /app/dist/ClipClip-${{ env.VERSION }}-linux-arm64 /app/dist/ClipClip-${{ env.VERSION }}-linux_arm64 || true
+          mv /app/dist/ClipClip-${{ env.VERSION }}-linux /app/dist/ClipClip-${{ env.VERSION }}-linux_arm64 || true
+          echo "Contents of dist directory:"
+          ls -la dist/
+        '
         
     - name: Upload Linux ARM64 artifact
       uses: actions/upload-artifact@v4
