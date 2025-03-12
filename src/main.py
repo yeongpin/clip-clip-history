@@ -19,6 +19,7 @@ from clipboard_monitor import ClipboardMonitor
 from utils.settings_config import SettingsConfig
 from utils.hotkey_manager import HotkeyManager
 from storage_manager import StorageManager
+from utils.theme_manager import ThemeManager
 
 # 創建一個全局信號類
 class GlobalSignals(QObject):
@@ -30,6 +31,12 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("ClipClip History")
     
+    # Initialize components
+    config = SettingsConfig()
+    
+    # 初始化主題
+    ThemeManager.init_themes()
+    
     # 設置應用圖標
     icon_path = os.path.join(os.path.dirname(__file__), "resources", "clipclip_icon.svg")
     if os.path.exists(icon_path):
@@ -39,6 +46,11 @@ def main():
         # 使用系統默認圖標
         app.setWindowIcon(app.style().standardIcon(app.style().StandardPixmap.SP_DialogSaveButton))
     
+    # 應用主題
+    current_theme = config.get_theme()
+    print(f"Applying theme: {current_theme}")
+    ThemeManager.apply_theme(current_theme)
+    
     # 定義 toggle_window 函數
     def toggle_window():
         app.global_signals.toggle_visibility.emit()
@@ -46,8 +58,6 @@ def main():
     # 創建全局信號
     app.global_signals = GlobalSignals()
     
-    # Initialize components
-    config = SettingsConfig()
     storage = StorageManager(config.get_storage_path())
     
     # Create main window

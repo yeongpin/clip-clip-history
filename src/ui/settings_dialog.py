@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QGroupBox, QTabWidget, QWidget, QApplication
 )
 from PyQt6.QtCore import Qt
+from utils.theme_manager import ThemeManager
 
 class SettingsDialog(QDialog):
     def __init__(self, config_manager, parent=None):
@@ -50,17 +51,34 @@ class SettingsDialog(QDialog):
         
         # Hotkey settings
         hotkey_group = QGroupBox("Hotkey")
-        hotkey_layout = QFormLayout(hotkey_group)
+        hotkey_layout = QVBoxLayout(hotkey_group)
         
-        self.hotkey_edit = QLineEdit()
-        self.hotkey_edit.setPlaceholderText("Press keys (e.g. ctrl+shift+q)")
-        self.hotkey_label = QLabel("Current hotkey:")
-        hotkey_layout.addRow(self.hotkey_label, self.hotkey_edit)
+        # 修飾鍵複選框
+        modifier_layout = QHBoxLayout()
+        self.shift_check = QCheckBox("Shift")
+        self.ctrl_check = QCheckBox("Ctrl")
+        self.alt_check = QCheckBox("Alt")
+        self.win_check = QCheckBox("Win")
+        
+        modifier_layout.addWidget(self.shift_check)
+        modifier_layout.addWidget(self.ctrl_check)
+        modifier_layout.addWidget(self.alt_check)
+        modifier_layout.addWidget(self.win_check)
+        
+        # 按鍵輸入框
+        key_layout = QHBoxLayout()
+        key_layout.addWidget(QLabel("Key:"))
+        self.key_edit = QLineEdit()
+        self.key_edit.setMaxLength(1)  # 限制只能輸入一個字符
+        key_layout.addWidget(self.key_edit)
+        
+        hotkey_layout.addLayout(modifier_layout)
+        hotkey_layout.addLayout(key_layout)
         
         # 添加說明標籤
-        help_label = QLabel("Supported keys: ctrl, shift, alt + letter/number")
+        help_label = QLabel("Select modifiers and enter a letter or number")
         help_label.setStyleSheet("color: gray;")
-        hotkey_layout.addRow("", help_label)
+        hotkey_layout.addWidget(help_label)
         
         general_layout.addWidget(hotkey_group)
         
@@ -74,13 +92,18 @@ class SettingsDialog(QDialog):
         general_layout.addWidget(startup_group)
         
         # Theme settings
-        theme_group = QGroupBox("Appearance")
-        theme_layout = QFormLayout(theme_group)
+        theme_group = QGroupBox("Theme")
+        theme_layout = QVBoxLayout(theme_group)
         
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(["System", "Light", "Dark"])
-        theme_layout.addRow("Theme:", self.theme_combo)
+        self.theme_combo.addItem("System")
         
+        # 添加所有可用主題
+        available_themes = ThemeManager.get_available_themes()
+        for theme_name in available_themes.keys():
+            self.theme_combo.addItem(theme_name.title())
+        
+        theme_layout.addWidget(self.theme_combo)
         general_layout.addWidget(theme_group)
         
         # Add general tab
@@ -154,17 +177,29 @@ class SettingsDialog(QDialog):
         
     def load_settings(self):
         """Load current settings"""
+        # 載入熱鍵設置
+        current_hotkey = self.config.get_hotkey()
+        modifiers = current_hotkey.lower().split("+")
+        
+        # 設置修飾鍵狀態
+        self.shift_check.setChecked("shift" in modifiers)
+        self.ctrl_check.setChecked("ctrl" in modifiers)
+        self.alt_check.setChecked("alt" in modifiers)
+        self.win_check.setChecked("win" in modifiers)
+        
+        # 設置主鍵
+        key = modifiers[-1] if modifiers else ""
+        self.key_edit.setText(key.upper())
+        
         # Load general settings
-        self.hotkey_edit.setText(self.config.get_hotkey())
         self.startup_checkbox.setChecked(self.config.get_startup())
         
-        theme = self.config.get_theme()
-        theme_index = 0  # Default to system
-        if theme == "light":
-            theme_index = 1
-        elif theme == "dark":
-            theme_index = 2
-        self.theme_combo.setCurrentIndex(theme_index)
+        # 設置當前主題
+        current_theme = self.config.get_theme()
+        # 查找主題在下拉列表中的索引
+        index = self.theme_combo.findText(current_theme.title())
+        if index >= 0:
+            self.theme_combo.setCurrentIndex(index)
         
         # Load storage settings
         self.path_edit.setText(self.config.get_storage_path())
@@ -210,8 +245,24 @@ class SettingsDialog(QDialog):
             
     def accept(self):
         """Save settings and close dialog"""
+        # 構建熱鍵字符串
+        modifiers = []
+        if self.shift_check.isChecked():
+            modifiers.append("shift")
+        if self.ctrl_check.isChecked():
+            modifiers.append("ctrl")
+        if self.alt_check.isChecked():
+            modifiers.append("alt")
+        if self.win_check.isChecked():
+            modifiers.append("win")
+            
+        key = self.key_edit.text().lower()
+        if key:
+            modifiers.append(key)
+            
+        new_hotkey = "+".join(modifiers)
+        
         # 保存熱鍵設置
-        new_hotkey = self.hotkey_edit.text()
         if new_hotkey != self.config.get_hotkey():
             self.config.set_hotkey(new_hotkey)
             # 更新全局熱鍵
@@ -222,13 +273,11 @@ class SettingsDialog(QDialog):
         # Save general settings
         self.config.set_startup(self.startup_checkbox.isChecked())
         
-        theme_index = self.theme_combo.currentIndex()
-        theme = "system"
-        if theme_index == 1:
-            theme = "light"
-        elif theme_index == 2:
-            theme = "dark"
-        self.config.set_theme(theme)
+        # 應用主題
+        theme_text = self.theme_combo.currentText()  # 不要轉換為小寫
+        print(f"Selected theme: {theme_text}")
+        self.config.set_theme(theme_text.lower())  # 保存時轉換為小寫
+        ThemeManager.apply_theme(theme_text.lower())
         
         # Save storage settings
         self.config.set_storage_path(self.path_edit.text())
