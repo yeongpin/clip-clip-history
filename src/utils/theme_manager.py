@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtCore import Qt
 import platform
-import winreg
 import os
 import configparser
 
@@ -196,6 +195,8 @@ class ThemeManager:
         system = platform.system()
         
         if system == "Windows":
+            # check if system uses dark theme
+            import winreg
             try:
                 registry = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
                 key = winreg.OpenKey(registry, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")

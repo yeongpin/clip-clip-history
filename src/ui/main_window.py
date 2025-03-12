@@ -42,8 +42,16 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("ClipClip History" + " " + self.get_version())
         self.setMinimumSize(600, 400)
         
-        # set window attribute to receive global hotkeys
-        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+        # set window flags
+        self.setWindowFlags(
+            Qt.WindowType.Window |  # general window
+            Qt.WindowType.WindowStaysOnTopHint |  # stay on top
+            Qt.WindowType.WindowCloseButtonHint |  # close button
+            Qt.WindowType.WindowMinimizeButtonHint  # minimize button
+        )
+        
+        # set focus policy
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         
         # Create system tray icon
         self.setup_tray_icon()
@@ -216,8 +224,12 @@ class MainWindow(QMainWindow):
                 self.show()
                 self.activateWindow()
                 self.raise_()
-                # 確保窗口在前台
-                self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
+                # force window to the front
+                self.setWindowState((self.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive)
+                # set focus
+                self.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+                # delay setting focus to ensure window is fully displayed
+                QTimer.singleShot(100, lambda: self.setFocus(Qt.FocusReason.ActiveWindowFocusReason))
         except Exception as e:
             print(f"Error in toggle_visibility: {e}")
             

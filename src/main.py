@@ -10,9 +10,10 @@ import sys
 import os
 import keyboard
 import threading
+import time
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QIcon, QKeySequence, QAction
-from PyQt6.QtCore import QObject, pyqtSignal, Qt
+from PyQt6.QtCore import QObject, pyqtSignal, Qt, QTimer
 
 from ui.main_window import MainWindow
 from clipboard_monitor import ClipboardMonitor
@@ -25,6 +26,20 @@ from utils.theme_manager import ThemeManager
 class GlobalSignals(QObject):
     item_added = pyqtSignal()
     toggle_visibility = pyqtSignal()
+
+# add debounce control
+class HotkeyDebouncer:
+    def __init__(self, delay=300):  # 300ms delay
+        self.delay = delay
+        self.timer = None
+        self.last_call = 0
+
+    def debounce(self, func):
+        current_time = time.time() * 1000  # convert to milliseconds
+        if current_time - self.last_call < self.delay:
+            return
+        self.last_call = current_time
+        func()
 
 def main():
     # Create application
@@ -51,9 +66,12 @@ def main():
     print(f"Applying theme: {current_theme}")
     ThemeManager.apply_theme(current_theme)
     
-    # Define toggle_window function
+    # create debouncer
+    hotkey_debouncer = HotkeyDebouncer()
+    
+    # modify toggle_window function
     def toggle_window():
-        app.global_signals.toggle_visibility.emit()
+        hotkey_debouncer.debounce(lambda: app.global_signals.toggle_visibility.emit())
     
     # Create global signals
     app.global_signals = GlobalSignals()
