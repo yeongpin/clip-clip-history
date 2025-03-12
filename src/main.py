@@ -38,7 +38,7 @@ def main():
     ThemeManager.init_themes()
     
     # Set application icon
-    icon_path = os.path.join(os.path.dirname(__file__), "resources", "clipclip_icon.svg")
+    icon_path = os.path.join(os.path.dirname(__file__), "resources", "clip_clip_icon.svg")
     if os.path.exists(icon_path):
         app.setWindowIcon(QIcon(icon_path))
     else:

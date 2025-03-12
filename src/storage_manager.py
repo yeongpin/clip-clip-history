@@ -46,11 +46,12 @@ class StorageManager:
             content TEXT NOT NULL,
             timestamp REAL NOT NULL,
             preview TEXT,
-            size INTEGER
+            size INTEGER,
+            pinned BOOLEAN DEFAULT 0
         )
         ''')
         
-        # Create settings table
+        # Create settings table if it doesn't exist
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
@@ -71,10 +72,18 @@ class StorageManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Insert new item
+        # Get all attributes from item.to_dict()
+        item_data = item.to_dict()
+        
+        # Build the SQL query dynamically
+        columns = ', '.join(item_data.keys())
+        placeholders = ', '.join(['?' for _ in item_data])
+        values = tuple(item_data.values())
+        
+        # Insert new item with all attributes
         cursor.execute(
-            "INSERT INTO clipboard_items (id, content_type, content, timestamp, preview, size) VALUES (?, ?, ?, ?, ?, ?)",
-            (item.id, item.content_type, item.content, item.timestamp, item.preview, item.size)
+            f"INSERT INTO clipboard_items ({columns}) VALUES ({placeholders})",
+            values
         )
         
         # Enforce maximum items limit
@@ -100,21 +109,18 @@ class StorageManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute(
-            "SELECT id, content_type, content, timestamp, preview, size FROM clipboard_items ORDER BY timestamp DESC LIMIT ? OFFSET ?",
+        # Get all columns from the table
+        cursor.execute("SELECT * FROM clipboard_items ORDER BY timestamp DESC LIMIT ? OFFSET ?",
             (limit, offset)
         )
         
+        # Get column names
+        columns = [description[0] for description in cursor.description]
+        
         items = []
         for row in cursor.fetchall():
-            item_dict = {
-                "id": row[0],
-                "content_type": row[1],
-                "content": row[2],
-                "timestamp": row[3],
-                "preview": row[4],
-                "size": row[5]
-            }
+            # Create dictionary with column names as keys
+            item_dict = dict(zip(columns, row))
             items.append(ClipboardItem.from_dict(item_dict))
             
         conn.close()
@@ -198,6 +204,19 @@ class StorageManager:
         cursor.execute(
             "DELETE FROM clipboard_items WHERE id NOT IN (SELECT id FROM clipboard_items ORDER BY timestamp DESC LIMIT ?)",
             (max_items,)
+        )
+        
+        conn.commit()
+        conn.close()
+        
+    def toggle_pin_item(self, item_id, pinned):
+        """Toggle pin status of an item"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "UPDATE clipboard_items SET pinned = ? WHERE id = ?",
+            (pinned, item_id)
         )
         
         conn.commit()

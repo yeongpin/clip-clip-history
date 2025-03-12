@@ -11,7 +11,7 @@ import json
 import os
 
 class ClipboardItem:
-    def __init__(self, content_type, content, timestamp=None, preview=None, size=None):
+    def __init__(self, content_type, content, timestamp=None, preview=None, size=None, pinned=False):
         """
         Initialize a clipboard item
         
@@ -21,6 +21,7 @@ class ClipboardItem:
             timestamp: Time when item was copied
             preview: Preview text or thumbnail data
             size: Size of content in bytes (for non-text items)
+            pinned: Whether the item is pinned
         """
         self.id = int(time.time() * 1000)  # Unique ID based on timestamp
         self.content_type = content_type
@@ -28,6 +29,7 @@ class ClipboardItem:
         self.timestamp = timestamp or time.time()
         self.preview = preview
         self.size = size
+        self.pinned = pinned
         
     def to_dict(self):
         """Convert item to dictionary for storage"""
@@ -37,7 +39,8 @@ class ClipboardItem:
             "content": self.content,
             "timestamp": self.timestamp,
             "preview": self.preview,
-            "size": self.size
+            "size": self.size,
+            "pinned": self.pinned
         }
         
     @classmethod
@@ -48,7 +51,8 @@ class ClipboardItem:
             content=data["content"],
             timestamp=data["timestamp"],
             preview=data["preview"],
-            size=data.get("size")
+            size=data.get("size"),
+            pinned=data.get("pinned", False)
         )
         item.id = data["id"]
         return item
