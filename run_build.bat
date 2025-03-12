@@ -8,14 +8,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Check if NSIS is installed
-makensis /VERSION >nul 2>&1
-if errorlevel 1 (
-    echo Error: NSIS is not installed or not in PATH
-    echo Please install NSIS from https://nsis.sourceforge.io/Download
-    exit /b 1
-)
-
 :: Check if virtual environment exists
 if not exist venv (
     echo Creating virtual environment...

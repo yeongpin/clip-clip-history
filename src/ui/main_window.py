@@ -226,6 +226,18 @@ class MainWindow(QMainWindow):
         """Load clipboard items from storage"""
         items = self.storage.get_items()
         self._populate_items_list(self.items_list, items)
+
+        current_filter = self.filter_tab.filter_combo.currentIndex()
+        if current_filter == 0:  # Last 30 days
+            self.filter_tab.filter_items(30)
+        elif current_filter == 1:  # Last 7 days
+            self.filter_tab.filter_items(7)
+        elif current_filter == 2:  # Today
+            self.filter_tab.filter_items(1)
+        elif current_filter == 3:  # Custom date
+            selected_date = self.filter_tab.calendar.selectedDate()
+            self.filter_tab.filter_items_by_date(selected_date.toPyDate())
+
         
     def show_context_menu(self, position):
         """Show context menu for clipboard items"""
@@ -412,18 +424,6 @@ class MainWindow(QMainWindow):
             
             # Reload items
             self.load_clipboard_items()
-
-            # Refresh filter tab based on current filter
-            current_filter = self.filter_tab.filter_combo.currentIndex()
-            if current_filter == 0:  # Last 30 days
-                self.filter_tab.filter_items(30)
-            elif current_filter == 1:  # Last 7 days
-                self.filter_tab.filter_items(7)
-            elif current_filter == 2:  # Today
-                self.filter_tab.filter_items(1)
-            elif current_filter == 3:  # Custom date
-                selected_date = self.filter_tab.calendar.selectedDate()
-                self.filter_tab.filter_items_by_date(selected_date.toPyDate())
             
     def show_settings(self):
         """Show settings dialog"""
@@ -538,18 +538,7 @@ class MainWindow(QMainWindow):
         
         # Refresh both main list and filter tab list
         self.load_clipboard_items()
-        
-        # Refresh filter tab based on current filter
-        current_filter = self.filter_tab.filter_combo.currentIndex()
-        if current_filter == 0:  # Last 30 days
-            self.filter_tab.filter_items(30)
-        elif current_filter == 1:  # Last 7 days
-            self.filter_tab.filter_items(7)
-        elif current_filter == 2:  # Today
-            self.filter_tab.filter_items(1)
-        elif current_filter == 3:  # Custom date
-            selected_date = self.filter_tab.calendar.selectedDate()
-            self.filter_tab.filter_items_by_date(selected_date.toPyDate())
+
 
     def _populate_items_list(self, list_widget, items):
         """Populate list widget with items"""

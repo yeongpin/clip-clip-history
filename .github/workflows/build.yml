@@ -62,8 +62,8 @@ jobs:
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ClipClip-${{ env.VERSION }}-windows.exe
-        path: dist/ClipClip-${{ env.VERSION }}-windows.exe
+        name: ClipClip-${{ env.VERSION }}-win.exe
+        path: dist/ClipClip-${{ env.VERSION }}-win.exe
 
   build-macos-arm64:
     needs: create-tag
@@ -233,7 +233,7 @@ jobs:
         with:
           tag_name: v${{ env.VERSION }}
           files: |
-            artifacts/ClipClip-${{ env.VERSION }}-windows.exe/ClipClip-${{ env.VERSION }}-windows.exe
+            artifacts/ClipClip-${{ env.VERSION }}-win.exe/ClipClip-${{ env.VERSION }}-win.exe
             artifacts/ClipClip-${{ env.VERSION }}-mac-arm64/ClipClip-${{ env.VERSION }}-mac-arm64
             artifacts/ClipClip-${{ env.VERSION }}-linux_x64/ClipClip-${{ env.VERSION }}-linux_x64
             artifacts/ClipClip-${{ env.VERSION }}-linux_arm64/ClipClip-${{ env.VERSION }}-linux_arm64

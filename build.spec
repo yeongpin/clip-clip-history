@@ -3,6 +3,8 @@ import os
 import platform
 from dotenv import load_dotenv
 
+load_dotenv()
+
 # load version from .env file
 with open('.env', 'r') as f:
     for line in f:
@@ -64,7 +66,7 @@ exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=True,
-    target_arch=None,
+    target_arch=target_arch,
     codesign_identity=None,
     entitlements_file=None,
     icon=icon_file
