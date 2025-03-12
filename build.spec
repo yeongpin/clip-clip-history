@@ -49,6 +49,8 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
+target_arch = os.environ.get('TARGET_ARCH', None)
+
 exe = EXE(
     pyz,
     a.scripts,
