@@ -413,11 +413,20 @@ class MainWindow(QMainWindow):
         
     def delete_clipboard_item(self, item_id):
         """Delete a clipboard item"""
-        # Delete from storage
-        self.storage.delete_item(item_id)
-        
-        # Reload items
-        self.load_clipboard_items()
+        show_confirmation = QMessageBox.question(
+            self,
+            "Delete Item",
+            "Are you sure you want to delete this item?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        if show_confirmation == QMessageBox.StandardButton.Yes:
+            # Delete from storage
+            self.storage.delete_item(item_id)
+            # Reload items
+            self.load_clipboard_items()
+        else:
+            return
         
     def clear_history(self):
         """Clear all clipboard history"""

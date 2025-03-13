@@ -4,6 +4,7 @@
 - Fix storage path not working
 - Fix sqlite3 not working
 - Add reset database button
+- Add delete item confirmation
 
 1.0.5
 - Add debounce control
