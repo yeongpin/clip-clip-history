@@ -1,6 +1,7 @@
 1.0.5
 - Add debounce control
 - Fix hotkey not working
+- Fix macos / linux pkg build
 
 1.0.4
 - Add icon to the application
