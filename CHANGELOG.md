@@ -5,6 +5,9 @@
 - Fix sqlite3 not working
 - Add reset database button
 - Add delete item confirmation
+- Fix settings dialog not working
+- Fix tray show and hide problem
+- Fix tray setting can open multiple dialog
 
 1.0.5
 - Add debounce control

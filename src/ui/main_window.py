@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         self.storage = storage_manager
         self.config = config_manager
         self.clipboard = QApplication.clipboard()
+        self.settings_dialog = None  # Track settings dialog instance
         
         self.setWindowTitle("ClipClip History" + " " + self.get_version())
         self.setMinimumSize(600, 400)
@@ -185,10 +186,28 @@ class MainWindow(QMainWindow):
         self.tray_icon.setToolTip("ClipClip History")
         
         # Create tray menu
-        tray_menu = QMenu()
+        self.tray_menu = QMenu()
+        self.update_tray_menu()
         
-        show_action = QAction("Show", self)
-        show_action.triggered.connect(self.show)
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.activated.connect(self.tray_icon_activated)
+        
+        # Show the tray icon
+        self.tray_icon.show()
+        
+    def update_tray_menu(self):
+        """Update tray menu based on window visibility"""
+        self.tray_menu.clear()
+        
+        # Add show/hide action based on visibility
+        if not self.isVisible():
+            show_action = QAction("Show", self)
+            show_action.triggered.connect(self.show_and_activate)
+            self.tray_menu.addAction(show_action)
+        else:
+            hide_action = QAction("Hide", self)
+            hide_action.triggered.connect(self.hide)
+            self.tray_menu.addAction(hide_action)
         
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.show_settings)
@@ -196,17 +215,32 @@ class MainWindow(QMainWindow):
         quit_action = QAction("Quit", self)
         quit_action.triggered.connect(self.quit_application)
         
-        tray_menu.addAction(show_action)
-        tray_menu.addAction(settings_action)
-        tray_menu.addSeparator()
-        tray_menu.addAction(quit_action)
-        
-        self.tray_icon.setContextMenu(tray_menu)
-        self.tray_icon.activated.connect(self.tray_icon_activated)
-        
-        # Show the tray icon
-        self.tray_icon.show()
-        
+        self.tray_menu.addAction(settings_action)
+        self.tray_menu.addSeparator()
+        self.tray_menu.addAction(quit_action)
+
+    def show_and_activate(self):
+        """Show and activate the window"""
+        self.show()
+        self.activateWindow()
+        self.raise_()
+        # force window to the front
+        self.setWindowState((self.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive)
+        # set focus
+        self.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
+        # update tray menu
+        self.update_tray_menu()
+
+    def hide(self):
+        """Hide the window and update tray menu"""
+        super().hide()
+        self.update_tray_menu()
+
+    def show(self):
+        """Show the window and update tray menu"""
+        super().show()
+        self.update_tray_menu()
+
     def tray_icon_activated(self, reason):
         """Handle tray icon activation"""
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
@@ -221,15 +255,7 @@ class MainWindow(QMainWindow):
                 self.hide()
             else:
                 print("Showing window")
-                self.show()
-                self.activateWindow()
-                self.raise_()
-                # force window to the front
-                self.setWindowState((self.windowState() & ~Qt.WindowState.WindowMinimized) | Qt.WindowState.WindowActive)
-                # set focus
-                self.setFocus(Qt.FocusReason.ActiveWindowFocusReason)
-                # delay setting focus to ensure window is fully displayed
-                QTimer.singleShot(100, lambda: self.setFocus(Qt.FocusReason.ActiveWindowFocusReason))
+                self.show_and_activate()
         except Exception as e:
             print(f"Error in toggle_visibility: {e}")
             
@@ -396,10 +422,7 @@ class MainWindow(QMainWindow):
             else:
                 print(f"Skipping non-text item: {selected_item.content_type}")
                 return
-            
-            # ensure clipboard data is set
-            print(f"Clipboard text after copy: {self.clipboard.text()}")
-            
+                        
             # Show notification
             self.tray_icon.showMessage(
                 "Clipboard History",
@@ -448,11 +471,29 @@ class MainWindow(QMainWindow):
             
     def show_settings(self):
         """Show settings dialog"""
-        dialog = SettingsDialog(self.config, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
+        # Check if settings dialog is already open
+        if self.settings_dialog is not None and self.settings_dialog.isVisible():
+            # Bring existing dialog to front
+            self.settings_dialog.activateWindow()
+            self.settings_dialog.raise_()
+            return
+        
+        # Create new settings dialog
+        self.settings_dialog = SettingsDialog(self.config, self)
+        
+        # Connect dialog's finished signal to clear reference
+        self.settings_dialog.finished.connect(self.on_settings_dialog_closed)
+        
+        # Show dialog
+        if self.settings_dialog.exec() == QDialog.DialogCode.Accepted:
             # Reload items if settings changed
             self.load_clipboard_items()
-            
+
+    def on_settings_dialog_closed(self):
+        """Handle settings dialog closed event"""
+        # Clear reference to allow garbage collection
+        self.settings_dialog = None
+
     def quit_application(self):
         """Quit the application"""
         QApplication.quit()
