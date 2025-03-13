@@ -1,5 +1,6 @@
 1.0.6
 - Add storage path to settings
+- Fix Total content size not calculating correctly
 - Fix storage path not working
 - Fix sqlite3 not working
 

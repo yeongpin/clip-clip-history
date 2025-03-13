@@ -83,7 +83,8 @@ class ClipboardMonitor(QObject):
             content_type="text",
             content=text,
             timestamp=time.time(),
-            preview=text[:100] if len(text) > 100 else text
+            preview=text[:100] if len(text) > 100 else text,
+            size=len(text.encode('utf-8'))  # 計算文本的字節大小
         )
         
         # Save to storage
