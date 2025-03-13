@@ -92,12 +92,13 @@ jobs:
         pyinstaller build.spec
         mv "dist/ClipClip-${{ env.VERSION }}-mac.app" "dist/ClipClip-${{ env.VERSION }}-mac-arm64.app"
         chmod +x "dist/ClipClip-${{ env.VERSION }}-mac-arm64.app/Contents/MacOS/ClipClip-${{ env.VERSION }}-mac"
+        cd dist && zip -r "ClipClip-${{ env.VERSION }}-mac-arm64.zip" "ClipClip-${{ env.VERSION }}-mac-arm64.app"
 
     - name: Upload MacOS ARM artifact
       uses: actions/upload-artifact@v4
       with:
         name: ClipClip-${{ env.VERSION }}-mac-arm64
-        path: dist/ClipClip-${{ env.VERSION }}-mac-arm64.app
+        path: dist/ClipClip-${{ env.VERSION }}-mac-arm64.zip
 
   build-linux-x64:
     needs: create-tag
@@ -165,12 +166,13 @@ jobs:
       run: |
         arch -x86_64 python3 -m PyInstaller build.spec
         mv "dist/ClipClip-${{ env.VERSION }}-mac.app" "dist/ClipClip-${{ env.VERSION }}-mac-amd64.app"
+        cd dist && zip -r "ClipClip-${{ env.VERSION }}-mac-amd64.zip" "ClipClip-${{ env.VERSION }}-mac-amd64.app"
         
     - name: Upload MacOS Intel artifact
       uses: actions/upload-artifact@v4
       with:
         name: ClipClip-${{ env.VERSION }}-mac-amd64
-        path: dist/ClipClip-${{ env.VERSION }}-mac-amd64.app
+        path: dist/ClipClip-${{ env.VERSION }}-mac-amd64.zip
 
   create-release:
     needs: [build-windows, build-macos-arm64, build-linux-x64, build-macos-amd64]
@@ -200,9 +202,9 @@ jobs:
           tag_name: v${{ env.VERSION }}
           files: |
             artifacts/ClipClip-${{ env.VERSION }}-win.exe/ClipClip-${{ env.VERSION }}-win.exe
-            artifacts/ClipClip-${{ env.VERSION }}-mac-arm64/
+            artifacts/ClipClip-${{ env.VERSION }}-mac-arm64/ClipClip-${{ env.VERSION }}-mac-arm64.zip
             artifacts/ClipClip-${{ env.VERSION }}-linux-x64/ClipClip-${{ env.VERSION }}-linux-x64
-            artifacts/ClipClip-${{ env.VERSION }}-mac-amd64.app/
+            artifacts/ClipClip-${{ env.VERSION }}-mac-amd64/ClipClip-${{ env.VERSION }}-mac-amd64.zip
           draft: false
           prerelease: false
         env:
