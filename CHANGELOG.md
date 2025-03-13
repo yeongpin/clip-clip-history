@@ -12,6 +12,8 @@
 - Add Available disk space to settings
 - Add Total disk space to settings
 - Fix startup not working
+- Add tooltip to filtered items list
+- Add tooltip to history items list
 
 1.0.5
 - Add debounce control

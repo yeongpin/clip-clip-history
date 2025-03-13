@@ -76,6 +76,23 @@ class FilterTab(QWidget):
         self.filtered_items_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.filtered_items_list.customContextMenuRequested.connect(self.show_context_menu)
         
+        # Connect hover events for tooltips
+        self.filtered_items_list.setMouseTracking(True)
+        self.filtered_items_list.itemEntered.connect(
+            lambda item: self.main_window.tooltip_manager.handle_hover(self.filtered_items_list, item)
+        )
+        self.filtered_items_list.viewportEntered.connect(
+            self.main_window.tooltip_manager.hide_tooltip
+        )
+        
+        # Override leaveEvent to hide tooltip
+        original_leave_event = self.filtered_items_list.leaveEvent
+        def custom_leave_event(event):
+            self.main_window.tooltip_manager.hide_tooltip()
+            if original_leave_event:
+                original_leave_event(event)
+        self.filtered_items_list.leaveEvent = custom_leave_event
+        
         layout.addWidget(self.filtered_items_list)
         
         # initialize display recent 30 days items

@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 from ui.settings_dialog import SettingsDialog
 from models.clipboard_item import ClipboardItem
 from ui.filter_tab import FilterTab
+from utils.tooltip_manager import TooltipManager
 
 class MainWindow(QMainWindow):
     def __init__(self, storage_manager, config_manager):
@@ -39,6 +40,9 @@ class MainWindow(QMainWindow):
         self.config = config_manager
         self.clipboard = QApplication.clipboard()
         self.settings_dialog = None  # Track settings dialog instance
+        
+        # Create tooltip manager first
+        self.tooltip_manager = TooltipManager(self)
         
         self.setWindowTitle("ClipClip History" + " " + self.get_version())
         self.setMinimumSize(600, 400)
@@ -167,6 +171,12 @@ class MainWindow(QMainWindow):
         self.items_list.setTextElideMode(Qt.TextElideMode.ElideRight)
         
         layout.addWidget(self.items_list)
+        
+        # Connect hover events for tooltips
+        self.items_list.setMouseTracking(True)
+        self.items_list.itemEntered.connect(lambda item: self.tooltip_manager.handle_hover(self.items_list, item))
+        self.items_list.viewportEntered.connect(self.tooltip_manager.hide_tooltip)
+        self.items_list.leaveEvent = lambda event: self.tooltip_manager.hide_tooltip()
         
     def setup_tray_icon(self):
         """Setup system tray icon"""
