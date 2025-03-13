@@ -17,6 +17,7 @@ from PyQt6.QtCore import Qt
 from utils.theme_manager import ThemeManager
 import webbrowser
 import sys
+import shutil
 
 class SettingsDialog(QDialog):
     def __init__(self, config_manager, parent=None):
@@ -133,16 +134,30 @@ class SettingsDialog(QDialog):
         
         # Storage path settings
         path_group = QGroupBox("Storage Location")
-        path_layout = QHBoxLayout(path_group)
+        path_layout = QVBoxLayout(path_group)
         
+        # Path selection layout
+        path_select_layout = QHBoxLayout()
         self.path_edit = QLineEdit()
         self.path_edit.setReadOnly(True)
         
         self.browse_button = QPushButton("Browse...")
         self.browse_button.clicked.connect(self.browse_storage_path)
         
-        path_layout.addWidget(self.path_edit)
-        path_layout.addWidget(self.browse_button)
+        path_select_layout.addWidget(self.path_edit)
+        path_select_layout.addWidget(self.browse_button)
+        
+        path_layout.addLayout(path_select_layout)
+        
+        # Disk space information
+        disk_info_layout = QFormLayout()
+        self.total_space_label = QLabel()
+        self.free_space_label = QLabel()
+        
+        disk_info_layout.addRow("Total disk space:", self.total_space_label)
+        disk_info_layout.addRow("Available space:", self.free_space_label)
+        
+        path_layout.addLayout(disk_info_layout)
         
         storage_layout.addWidget(path_group)
         
@@ -292,9 +307,41 @@ class SettingsDialog(QDialog):
         self.path_edit.setText(self.config.get_storage_path())
         self.max_items_spin.setValue(self.config.get_max_items())
         
+        # Update disk space info
+        self.update_disk_space_info()
+        
         # Load storage info
         self.update_storage_info()
         
+    def update_disk_space_info(self):
+        """Update disk space information"""
+        try:
+            path = self.path_edit.text()
+            if os.path.exists(path):
+                total, used, free = shutil.disk_usage(path)
+                
+                # Format sizes
+                self.total_space_label.setText(self.format_size(total))
+                self.free_space_label.setText(self.format_size(free))
+            else:
+                self.total_space_label.setText("N/A")
+                self.free_space_label.setText("N/A")
+        except Exception as e:
+            print(f"Error getting disk space info: {e}")
+            self.total_space_label.setText("Error")
+            self.free_space_label.setText("Error")
+
+    def format_size(self, size):
+        """Format size in bytes to human-readable format"""
+        if size < 1024:
+            return f"{size} B"
+        elif size < 1024 * 1024:
+            return f"{size / 1024:.1f} KB"
+        elif size < 1024 * 1024 * 1024:
+            return f"{size / (1024 * 1024):.1f} MB"
+        else:
+            return f"{size / (1024 * 1024 * 1024):.1f} GB"
+
     def update_storage_info(self):
         """Update storage information labels"""
         from storage_manager import StorageManager
@@ -329,6 +376,8 @@ class SettingsDialog(QDialog):
         
         if path:
             self.path_edit.setText(path)
+            # Update disk space info for new path
+            self.update_disk_space_info()
             
     def accept(self):
         """Save settings and close dialog"""
