@@ -38,151 +38,139 @@ jobs:
     runs-on: windows-latest
     
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      
-      - name: Set version
-        shell: bash
-        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install -r requirements.txt
-          
-      - name: Build EXE
-        run: |
-          pyinstaller build.spec
-           
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ClipClip-${{ env.VERSION }}-win.exe
-          path: dist/ClipClip-${{ env.VERSION }}-win.exe
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Build EXE
+      run: |
+        pyinstaller build.spec
+         
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-win.exe
+        path: dist/ClipClip-${{ env.VERSION }}-win.exe
 
   build-macos-arm64:
     needs: create-tag
     runs-on: macos-latest
     
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      
-      - name: Set version
-        shell: bash
-        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install -r requirements.txt
-          
-      - name: Build MacOS ARM executable
-        run: |
-          pyinstaller build.spec
-          mv "dist/ClipClip-${{ env.VERSION }}-mac.app" "dist/ClipClip-${{ env.VERSION }}-mac-arm64.app"
-          chmod +x "dist/ClipClip-${{ env.VERSION }}-mac-arm64.app/Contents/MacOS/ClipClip-${{ env.VERSION }}-mac"
-      
-      - name: Zip MacOS ARM artifact
-        run: |
-          cd dist
-          zip -r "ClipClip-${{ env.VERSION }}-mac-arm64.zip" "ClipClip-${{ env.VERSION }}-mac-arm64.app"
-          cd ..
-      
-      - name: Upload MacOS ARM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ClipClip-${{ env.VERSION }}-mac-arm64.zip
-          path: dist/ClipClip-${{ env.VERSION }}-mac-arm64.zip
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Build MacOS ARM executable
+      run: |
+        pyinstaller build.spec
+        mv "dist/ClipClip-${{ env.VERSION }}-mac.app" "dist/ClipClip-${{ env.VERSION }}-mac-arm64.app"
+        chmod +x "dist/ClipClip-${{ env.VERSION }}-mac-arm64.app/Contents/MacOS/ClipClip-${{ env.VERSION }}-mac"
+
+    - name: Upload MacOS ARM artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-mac-arm64
+        path: dist/ClipClip-${{ env.VERSION }}-mac-arm64.app
 
   build-linux-x64:
     needs: create-tag
     runs-on: ubuntu-22.04
     
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      
-      - name: Set version
-        shell: bash
-        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install -r requirements.txt
-          
-      - name: Build Linux x64 executable
-        env:
-          VERSION: ${{ env.VERSION }}
-        run: |
-          pyinstaller build.spec
-          mv "dist/ClipClip-${{ env.VERSION }}-linux.AppImage" "dist/ClipClip-${{ env.VERSION }}-linux-x64.AppImage"
-          echo "Contents of dist directory:"
-          ls -la dist/
-          
-      - name: Upload Linux x64 artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ClipClip-${{ env.VERSION }}-linux-x64.AppImage
-          path: dist/ClipClip-${{ env.VERSION }}-linux-x64.AppImage
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Build Linux x64 executable
+      env:
+        VERSION: ${{ env.VERSION }}
+      run: |
+        pyinstaller build.spec
+        mv "dist/ClipClip-${{ env.VERSION }}-linux" "dist/ClipClip-${{ env.VERSION }}-linux-x64"
+        echo "Contents of dist directory:"
+        ls -la dist/
+        
+    - name: Upload Linux x64 artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-linux-x64
+        path: dist/ClipClip-${{ env.VERSION }}-linux-x64
 
   build-macos-amd64:
     needs: create-tag
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-      - name: Set version
-        shell: bash
-        run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+    - name: Set version
+      shell: bash
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
-      - name: Install dependencies
-        run: |
-          arch -x86_64 pip3 install --upgrade pip
-          arch -x86_64 pip3 install pyinstaller
-          arch -x86_64 pip3 install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        arch -x86_64 pip3 install --upgrade pip
+        arch -x86_64 pip3 install pyinstaller
+        arch -x86_64 pip3 install -r requirements.txt
 
-      - name: Build MacOS Intel executable
-        env:
-          TARGET_ARCH: 'x86_64'
-          VERSION: ${{ env.VERSION }}
-        run: |
-          arch -x86_64 python3 -m PyInstaller build.spec
-          mv "dist/ClipClip-${{ env.VERSION }}-mac.app" "dist/ClipClip-${{ env.VERSION }}-mac-amd64.app"
-      
-      - name: Zip MacOS Intel artifact
-        run: |
-          cd dist
-          zip -r "ClipClip-${{ env.VERSION }}-mac-amd64.zip" "ClipClip-${{ env.VERSION }}-mac-amd64.app"
-          cd ..
-      
-      - name: Upload MacOS Intel artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ClipClip-${{ env.VERSION }}-mac-amd64.zip
-          path: dist/ClipClip-${{ env.VERSION }}-mac-amd64.zip
+    - name: Build MacOS Intel executable
+      env:
+        TARGET_ARCH: 'x86_64'
+        VERSION: ${{ env.VERSION }}
+      run: |
+        arch -x86_64 python3 -m PyInstaller build.spec
+        mv "dist/ClipClip-${{ env.VERSION }}-mac.app" "dist/ClipClip-${{ env.VERSION }}-mac-amd64.app"
+        
+    - name: Upload MacOS Intel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ClipClip-${{ env.VERSION }}-mac-amd64
+        path: dist/ClipClip-${{ env.VERSION }}-mac-amd64.app
 
   create-release:
     needs: [build-windows, build-macos-arm64, build-linux-x64, build-macos-amd64]
@@ -198,15 +186,23 @@ jobs:
         with:
           path: artifacts
 
+      - name: Prepare release files
+        run: |
+          cd artifacts
+          echo "Contents of artifacts directory:"
+          ls -la
+          echo "Contents of subdirectories:"
+          ls -la */
+          
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ env.VERSION }}
           files: |
             artifacts/ClipClip-${{ env.VERSION }}-win.exe/ClipClip-${{ env.VERSION }}-win.exe
-            artifacts/ClipClip-${{ env.VERSION }}-mac-arm64.zip
-            artifacts/ClipClip-${{ env.VERSION }}-linux-x64.AppImage
-            artifacts/ClipClip-${{ env.VERSION }}-mac-amd64.zip
+            artifacts/ClipClip-${{ env.VERSION }}-mac-arm64/
+            artifacts/ClipClip-${{ env.VERSION }}-linux-x64/ClipClip-${{ env.VERSION }}-linux-x64
+            artifacts/ClipClip-${{ env.VERSION }}-mac-amd64.app/
           draft: false
           prerelease: false
         env:
