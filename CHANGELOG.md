@@ -1,3 +1,8 @@
+1.0.6
+- Add storage path to settings
+- Fix storage path not working
+- Fix sqlite3 not working
+
 1.0.5
 - Add debounce control
 - Fix hotkey not working

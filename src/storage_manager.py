@@ -38,18 +38,34 @@ class StorageManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Create tables if they don't exist
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS clipboard_items (
-            id INTEGER PRIMARY KEY,
-            content_type TEXT NOT NULL,
-            content TEXT NOT NULL,
-            timestamp REAL NOT NULL,
-            preview TEXT,
-            size INTEGER,
-            pinned BOOLEAN DEFAULT 0
-        )
-        ''')
+        # 檢查表是否存在
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='clipboard_items'")
+        table_exists = cursor.fetchone()
+        
+        if table_exists:
+            # 檢查表結構
+            cursor.execute("PRAGMA table_info(clipboard_items)")
+            columns = [col[1] for col in cursor.fetchall()]
+            
+            # 如果缺少 content_type 列，則添加它
+            if 'content_type' not in columns:
+                print("Upgrading database schema: adding content_type column")
+                cursor.execute("ALTER TABLE clipboard_items ADD COLUMN content_type TEXT DEFAULT 'text' NOT NULL")
+                conn.commit()
+        else:
+            # 創建新表
+            cursor.execute('''
+            CREATE TABLE clipboard_items (
+                id INTEGER PRIMARY KEY,
+                content_type TEXT NOT NULL,
+                content TEXT NOT NULL,
+                timestamp REAL NOT NULL,
+                preview TEXT,
+                size INTEGER,
+                pinned BOOLEAN DEFAULT 0
+            )
+            ''')
+            conn.commit()
         
         # Create settings table if it doesn't exist
         cursor.execute('''

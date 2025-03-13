@@ -14,7 +14,8 @@ class SettingsConfig:
             'minimize_to_tray': 'true'
         },
         'Storage': {
-            'max_items': '100'
+            'max_items': '100',
+            'path': os.path.join(os.path.expanduser('~/Documents'), '.clip-history', 'storage')
         }
     }
     
