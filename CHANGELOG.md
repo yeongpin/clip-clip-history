@@ -11,6 +11,7 @@
 - Add Free disk space to settings
 - Add Available disk space to settings
 - Add Total disk space to settings
+- Fix startup not working
 
 1.0.5
 - Add debounce control

@@ -1,6 +1,7 @@
 import os
 import configparser
 from pathlib import Path
+from utils.config_manager import ConfigManager
 
 class SettingsConfig:
     """manage application settings configuration"""
@@ -113,7 +114,13 @@ class SettingsConfig:
     def set_startup(self, enabled):
         """set startup"""
         self.set('General', 'startup', str(enabled).lower())
-    
+        
+        # Implement platform-specific startup registration
+        if enabled:
+            ConfigManager.register_startup()
+        else:
+            ConfigManager.unregister_startup()
+        
     # shortcut method - storage related
     def get_storage_path(self):
         """get storage path"""

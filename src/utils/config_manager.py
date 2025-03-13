@@ -95,9 +95,9 @@ class ConfigManager:
         
         # Implement platform-specific startup registration
         if enabled:
-            self._register_startup()
+            self.register_startup()
         else:
-            self._unregister_startup()
+            self.unregister_startup()
             
     def get_theme(self):
         """Get UI theme"""
@@ -108,7 +108,8 @@ class ConfigManager:
         self.config["theme"] = theme
         self.save_config()
         
-    def _register_startup(self):
+    @staticmethod
+    def register_startup():
         """Register application to start on system boot"""
         import platform
         system = platform.system()
@@ -117,9 +118,20 @@ class ConfigManager:
             import winreg
             key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
             try:
+                # Get the path to the executable
+                if getattr(sys, 'frozen', False):
+                    # If running as compiled executable (PyInstaller)
+                    app_path = f'"{sys.executable}"'
+                else:
+                    # If running as script
+                    main_script = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "main.py")
+                    app_path = f'"{sys.executable}" "{main_script}"'
+                
+                # Register in Windows registry
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_WRITE)
-                winreg.SetValueEx(key, "ClipClipHistory", 0, winreg.REG_SZ, sys.executable + " " + os.path.abspath(__file__))
+                winreg.SetValueEx(key, "ClipClipHistory", 0, winreg.REG_SZ, app_path)
                 winreg.CloseKey(key)
+                print(f"Successfully registered startup: {app_path}")
             except Exception as e:
                 print(f"Error registering startup: {e}")
                 
@@ -165,7 +177,8 @@ X-GNOME-Autostart-enabled=true
             except Exception as e:
                 print(f"Error registering startup: {e}")
                 
-    def _unregister_startup(self):
+    @staticmethod
+    def unregister_startup():
         """Unregister application from starting on system boot"""
         import platform
         system = platform.system()
