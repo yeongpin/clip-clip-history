@@ -11,8 +11,11 @@ import json
 import sqlite3
 import time
 from models.clipboard_item import ClipboardItem
+from PyQt6.QtCore import pyqtSignal, QObject
 
-class StorageManager:
+class StorageManager(QObject):
+    database_reset_signal = pyqtSignal()
+    
     def __init__(self, storage_path=None):
         """
         Initialize storage manager
@@ -20,6 +23,8 @@ class StorageManager:
         Args:
             storage_path: Path to store database file
         """
+        super().__init__()  # Initialize QObject
+        
         if not storage_path:
             # Default to user's temp directory
             storage_path = os.path.join(os.path.expanduser("~"), ".clipboard_history")
@@ -236,4 +241,30 @@ class StorageManager:
         )
         
         conn.commit()
-        conn.close() 
+        conn.close()
+        
+    def reset_database(self):
+        """Delete and reinitialize the database"""
+        # Close any existing connections
+        conn = sqlite3.connect(self.db_path)
+        conn.close()
+        
+        # Delete the database file completely
+        if os.path.exists(self.db_path):
+            os.remove(self.db_path)
+        
+        # Reinitialize the database (this will create a fresh file)
+        self._init_db()
+        
+        # Restore max_items setting
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO settings (key, value) VALUES (?, ?)",
+            ("max_items", str(self.max_items))
+        )
+        conn.commit()
+        conn.close()
+        
+        # Emit signal to notify that database has been reset
+        self.database_reset_signal.emit() 

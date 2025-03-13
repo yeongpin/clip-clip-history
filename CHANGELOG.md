@@ -3,6 +3,7 @@
 - Fix Total content size not calculating correctly
 - Fix storage path not working
 - Fix sqlite3 not working
+- Add reset database button
 
 1.0.5
 - Add debounce control
@@ -39,3 +40,7 @@
 
 1.0.0
 - Initial release
+
+
+[Unreleased]
+- Image support

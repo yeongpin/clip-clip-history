@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QSpinBox, QCheckBox,
     QPushButton, QFileDialog, QComboBox,
-    QGroupBox, QTabWidget, QWidget, QApplication, QTextBrowser
+    QGroupBox, QTabWidget, QWidget, QApplication, QTextBrowser, QMessageBox
 )
 from PyQt6.QtCore import Qt
 from utils.theme_manager import ThemeManager
@@ -169,7 +169,19 @@ class SettingsDialog(QDialog):
         
         info_layout.addRow("Items stored:", self.item_count_label)
         info_layout.addRow("Total content size:", self.total_size_label)
-        info_layout.addRow("Database size:", self.db_size_label)
+        
+        # Create a horizontal layout for database size and delete button
+        db_size_layout = QHBoxLayout()
+        db_size_layout.addWidget(self.db_size_label)
+        
+        # Add delete database button
+        self.delete_db_button = QPushButton("Delete Database")
+        self.delete_db_button.setToolTip("Delete and reinitialize the database")
+        self.delete_db_button.clicked.connect(self.delete_database)
+        self.delete_db_button.setStyleSheet("background-color: #ff5555; color: white;")
+        db_size_layout.addWidget(self.delete_db_button)
+        
+        info_layout.addRow("Database size:", db_size_layout)
         
         storage_layout.addWidget(info_group)
         
@@ -445,3 +457,37 @@ class SettingsDialog(QDialog):
             self.key_edit.setText(key)
         elif event.key() in (Qt.Key.Key_Backspace, Qt.Key.Key_Delete):
             self.key_edit.clear()
+
+    def delete_database(self):
+        """Delete and reinitialize the database"""
+        from PyQt6.QtWidgets import QMessageBox
+        
+        # Confirm deletion
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Database Deletion",
+            "Are you sure you want to delete the database?\n"
+            "This will permanently delete all clipboard history items.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if confirm == QMessageBox.StandardButton.Yes:
+            # Create storage manager and reset database
+            from storage_manager import StorageManager
+            storage = StorageManager(self.config.get_storage_path())
+            
+            # Connect to main window's load_clipboard_items method if parent exists
+            if self.parent() and hasattr(self.parent(), 'load_clipboard_items'):
+                storage.database_reset_signal.connect(self.parent().load_clipboard_items)
+            
+            storage.reset_database()
+            
+            # Update storage info
+            self.update_storage_info()
+            
+            QMessageBox.information(
+                self,
+                "Database Reset",
+                "The database has been successfully reset."
+            )
