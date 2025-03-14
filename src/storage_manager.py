@@ -7,9 +7,7 @@ Manages the storage and retrieval of clipboard history items.
 """
 
 import os
-import json
 import sqlite3
-import time
 from models.clipboard_item import ClipboardItem
 from PyQt6.QtCore import pyqtSignal, QObject
 

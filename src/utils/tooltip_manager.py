@@ -7,8 +7,8 @@ Provides enhanced tooltip functionality for clipboard items.
 """
 
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget, QApplication
-from PyQt6.QtCore import Qt, QTimer, QPoint, QRect, QEvent
-from PyQt6.QtGui import QFont, QPalette, QColor, QCursor
+from PyQt6.QtCore import Qt, QTimer, QPoint
+from PyQt6.QtGui import QFont, QPalette, QCursor
 
 class ClipboardTooltip(QWidget):
     """Custom tooltip widget for clipboard items"""

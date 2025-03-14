@@ -12,8 +12,8 @@ import keyboard
 import threading
 import time
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtGui import QIcon, QKeySequence, QAction
-from PyQt6.QtCore import QObject, pyqtSignal, Qt, QTimer
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QObject, pyqtSignal
 
 from ui.main_window import MainWindow
 from clipboard_monitor import ClipboardMonitor

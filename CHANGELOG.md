@@ -14,6 +14,9 @@
 - Fix startup not working
 - Add tooltip to filtered items list
 - Add tooltip to history items list
+- Fix tooltip not working
+- Fix tooltip not showing on hover
+- Remove Unused import
 
 1.0.5
 - Add debounce control

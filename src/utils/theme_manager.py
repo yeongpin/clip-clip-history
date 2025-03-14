@@ -1,6 +1,5 @@
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette, QColor
-from PyQt6.QtCore import Qt
 import platform
 import os
 import configparser
@@ -9,7 +8,8 @@ class ThemeManager:
     # list of theme color roles - use lowercase
     REQUIRED_COLORS = [
         'window', 'windowtext', 'base', 'alternatebase', 
-        'text', 'button', 'buttontext', 'highlight', 'highlightedtext'
+        'text', 'button', 'buttontext', 'highlight', 'highlightedtext',
+        'tooltipbase', 'tooltiptext'
     ]
     
     # default theme colors - use lowercase
@@ -22,7 +22,9 @@ class ThemeManager:
         'button': '240,240,240',
         'buttontext': '0,0,0',
         'highlight': '42,130,218',
-        'highlightedtext': '255,255,255'
+        'highlightedtext': '255,255,255',
+        'tooltipbase': '240,240,240',
+        'tooltiptext': '0,0,0'
     }
     
     DARK_THEME = {
@@ -34,7 +36,9 @@ class ThemeManager:
         'button': '53,53,53',
         'buttontext': '255,255,255',
         'highlight': '42,130,218',
-        'highlightedtext': '255,255,255'
+        'highlightedtext': '255,255,255',
+        'tooltipbase': '53,53,53',
+        'tooltiptext': '255,255,255'
     }
 
     @staticmethod
@@ -177,8 +181,39 @@ class ThemeManager:
             'button': QPalette.ColorRole.Button,
             'buttontext': QPalette.ColorRole.ButtonText,
             'highlight': QPalette.ColorRole.Highlight,
-            'highlightedtext': QPalette.ColorRole.HighlightedText
+            'highlightedtext': QPalette.ColorRole.HighlightedText,
+            'tooltipbase': QPalette.ColorRole.ToolTipBase,
+            'tooltiptext': QPalette.ColorRole.ToolTipText
         }
+
+        # Set tooltip colors based on theme
+        if 'window' in colors and 'windowtext' in colors:
+            # Use window/windowtext colors for tooltips if not explicitly defined
+            if 'tooltipbase' not in colors:
+                # For tooltip background, use a slightly lighter/darker version of window color
+                window_color = ThemeManager._str_to_color(colors['window'])
+                is_dark = window_color.lightness() < 128
+                
+                if is_dark:
+                    # For dark themes, make tooltip slightly lighter
+                    tooltip_base = QColor(
+                        min(window_color.red() + 20, 255),
+                        min(window_color.green() + 20, 255),
+                        min(window_color.blue() + 20, 255)
+                    )
+                else:
+                    # For light themes, make tooltip slightly darker
+                    tooltip_base = QColor(
+                        max(window_color.red() - 10, 0),
+                        max(window_color.green() - 10, 0),
+                        max(window_color.blue() - 10, 0)
+                    )
+                    
+                colors['tooltipbase'] = f"{tooltip_base.red()},{tooltip_base.green()},{tooltip_base.blue()}"
+                
+            if 'tooltiptext' not in colors:
+                # Use windowtext color for tooltip text
+                colors['tooltiptext'] = colors['windowtext']
 
         # apply theme colors
         for role_name, color_str in colors.items():
@@ -188,6 +223,21 @@ class ThemeManager:
                 palette.setColor(role_map[role_name], color)
 
         app.setPalette(palette)
+        
+        # Update any existing tooltips
+        ThemeManager.update_tooltips()
+
+    @staticmethod
+    def update_tooltips():
+        """Update existing tooltips to match current theme"""
+        # Find all tooltip instances and update them
+        app = QApplication.instance()
+        
+        # Find all ClipboardTooltip instances
+        for widget in app.allWidgets():
+            if widget.__class__.__name__ == 'ClipboardTooltip':
+                if hasattr(widget, 'apply_theme'):
+                    widget.apply_theme()
 
     @staticmethod
     def is_system_dark_theme():

@@ -7,7 +7,6 @@ Represents a single clipboard history item.
 """
 
 import time
-import json
 import os
 
 class ClipboardItem:

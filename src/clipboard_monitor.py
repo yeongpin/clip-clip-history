@@ -9,8 +9,7 @@ Monitors system clipboard for changes and saves new content to storage.
 import os
 import time
 import tempfile
-from PyQt6.QtCore import QObject, QMimeData, QByteArray, QBuffer, QIODevice, QUrl
-from PyQt6.QtGui import QClipboard, QImage, QAction, QShortcut
+from PyQt6.QtCore import QObject, QBuffer, QIODevice
 from models.clipboard_item import ClipboardItem
 
 class ClipboardMonitor(QObject):

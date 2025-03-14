@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QSpinBox, QCheckBox,
     QPushButton, QFileDialog, QComboBox,
-    QGroupBox, QTabWidget, QWidget, QApplication, QTextBrowser, QMessageBox
+    QGroupBox, QTabWidget, QWidget, QApplication, QTextBrowser
 )
 from PyQt6.QtCore import Qt
 from utils.theme_manager import ThemeManager

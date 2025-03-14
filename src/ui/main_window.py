@@ -8,20 +8,17 @@ The main application window for the clipboard history manager.
 
 import os
 import sys
-import time
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QListWidget, QListWidgetItem, QMenu,
     QSystemTrayIcon, QLabel, QTabWidget, QDialog,
-    QMessageBox, QApplication, QStyle, QSplitter, QTextEdit,
-    QCalendarWidget, QComboBox, QLineEdit
+    QMessageBox, QApplication, QStyle, QTextEdit,
+    QLineEdit
 )
-from PyQt6.QtGui import QIcon, QPixmap, QImage, QAction, QColor
-from PyQt6.QtCore import Qt, QSize, QBuffer, QByteArray, QIODevice, QMetaObject, Q_ARG, pyqtSignal, QUrl, QMimeData, QTimer
-from datetime import datetime, timedelta
+from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtCore import Qt, QSize
 
 from ui.settings_dialog import SettingsDialog
-from models.clipboard_item import ClipboardItem
 from ui.filter_tab import FilterTab
 from utils.tooltip_manager import TooltipManager
 

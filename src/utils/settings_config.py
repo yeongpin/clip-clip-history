@@ -1,6 +1,5 @@
 import os
 import configparser
-from pathlib import Path
 from utils.config_manager import ConfigManager
 
 class SettingsConfig:
